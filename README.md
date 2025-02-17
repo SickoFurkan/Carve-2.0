@@ -1,0 +1,74 @@
+# Carve - iOS Health & Fitness App
+
+Een AI-powered gezondheids- en fitness-app die je dagelijkse voedselinname bijhoudt met behulp van AI. De app kan voedsel identificeren via foto's of handmatige invoer, en geeft je een gedetailleerd overzicht van je voedingswaarden.
+
+## Updates (February 7, 2025)
+
+### Core Features
+- 📱 Fork Downs (Homepage): Food tracking and nutritional analysis
+- 🤖 AI-powered food recognition
+- 📸 Photo analysis of food
+- 📊 Nutrition tracking
+- 💪 Muscle Ups: Health and fitness tracking
+- 🔴 Live: Social features for user interaction
+- 🌙 Dark mode support
+
+### Authentication System
+- Complete authentication flow with email/password, Google, and Apple Sign In
+- Secure user registration and login functionality
+- Firebase Authentication integration
+- Proper error handling and user feedback
+- Secure token management
+
+### User Interface & Design
+- Modern Apple-style design with gradient elements
+- Animated splash screen
+- Welcome screen with registration/login options
+- Login/signup forms with social authentication
+- Proper keyboard handling and form validation
+- Dark mode support
+
+### Architecture & Technical Details
+- MVVM architecture
+- SwiftUI for modern UI development
+- Firebase for backend and authentication
+- OpenAI for AI analysis
+- Proper environment object handling
+- Secure API key management
+- Support for multiple screen sizes and orientations
+
+## Setup Instructions
+
+### Requirements
+- iOS 17.0+
+- Xcode 15.0+
+- Swift 5.9+
+- Firebase account
+- OpenAI API key
+- Google Sign In configuration
+- Apple Developer account for Apple Sign In
+
+### Installation
+1. Clone the repository:
+```bash
+git clone https://github.com/SickoFurkan/Carve.git
+```
+
+2. Add required configuration files (NOT included in Git):
+- `GoogleService-Info.plist` (available from Firebase Console)
+- Create `Config.swift` based on `config.template.swift`
+- Fill in your API keys and tokens
+
+3. Open `Carve.xcodeproj` in Xcode
+
+4. Build and run the project
+
+### ⚠️ Important Note
+The following files contain sensitive information and are NOT included in the repository:
+- `GoogleService-Info.plist`
+- `Config.swift`
+
+Keep these files secure and NEVER share them via Git or other public channels.
+
+## Contact
+Developed by Furkan Çeliker

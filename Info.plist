@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>Google Sign In</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.192759134127-p1d44h2o45c02rfp6ulpmqfknvqaso7o</string>
+			</array>
+		</dict>
+	</array>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<true/>
+	<key>FirebaseScreenReportingEnabled</key>
+	<true/>
+	<key>FirebaseAutomaticScreenReportingEnabled</key>
+	<true/>
+	<key>FirebasePhoneAuthProviderAuthorizationEnabled</key>
+	<true/>
+	<key>FirebaseAppCheckDebugEnabled</key>
+	<true/>
+	<key>GIDClientID</key>
+	<string>192759134127-p1d44h2o45c02rfp6ulpmqfknvqaso7o.apps.googleusercontent.com</string>
+</dict>
+</plist>
