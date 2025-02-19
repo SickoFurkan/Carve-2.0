@@ -8,6 +8,7 @@ public enum MuscleGroup: String, Codable {
     case shoulders
     case arms
     case core
+    case cardio
     
     var color: Color {
         switch self {
@@ -17,6 +18,7 @@ public enum MuscleGroup: String, Codable {
         case .shoulders: return .orange
         case .arms: return .green
         case .core: return .yellow
+        case .cardio: return .pink
         }
     }
 }
@@ -74,20 +76,8 @@ public class WorkoutStore: ObservableObject {
         
         // Find existing workout for the date
         if let index = workouts.firstIndex(where: { Calendar.current.isDate($0.date, inSameDayAs: date) }) {
-            // Combine muscle groups with existing ones
-            var existingMuscleGroups = Set(workouts[index].muscleGroups)
-            muscleGroups.forEach { existingMuscleGroups.insert($0) }
-            
-            // Create new workout with combined muscle groups
-            let updatedWorkout = WorkoutEntry(
-                id: workouts[index].id,
-                date: date,
-                muscleGroups: Array(existingMuscleGroups),
-                name: name,
-                duration: duration,
-                exercises: exercises
-            )
-            workouts[index] = updatedWorkout
+            // Override the existing workout with the new one
+            workouts[index] = workout
         } else {
             workouts.append(workout)
         }

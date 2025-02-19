@@ -83,7 +83,7 @@ struct MuscleUpsView: View {
             .cardStyle()
         }
         .standardPageLayout()
-        .edgesIgnoringSafeArea(.all)
+        .ignoresSafeArea(.container, edges: [])
         .sheet(isPresented: $showingProfile) {
             NavigationView {
                 ProfileView()
@@ -114,6 +114,8 @@ struct MuscleGroupButton: View {
     let color: Color
     @EnvironmentObject var workoutStore: WorkoutStore
     @Binding var selectedDate: Date
+    var isSelected: Bool = false
+    var onTap: (() -> Void)? = nil
     
     private var muscleGroup: MuscleGroup {
         switch name {
@@ -123,21 +125,26 @@ struct MuscleGroupButton: View {
         case "Shoulders": return .shoulders
         case "Arms": return .arms
         case "Core": return .core
+        case "Cardio": return .cardio
         default: return .core
         }
     }
     
     var body: some View {
         Button(action: {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                // Add workout for the selected muscle group
-                workoutStore.addWorkout(
-                    muscleGroups: [muscleGroup],
-                    name: "\(name) Workout",
-                    duration: 0,
-                    exercises: [],
-                    for: selectedDate
-                )
+            if let customTap = onTap {
+                customTap()
+            } else {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    // Add workout for the selected muscle group
+                    workoutStore.addWorkout(
+                        muscleGroups: [muscleGroup],
+                        name: "\(name) Workout",
+                        duration: 0,
+                        exercises: [],
+                        for: selectedDate
+                    )
+                }
             }
         }) {
             VStack(spacing: 8) {
@@ -148,9 +155,10 @@ struct MuscleGroupButton: View {
             }
             .frame(maxWidth: .infinity)
             .padding()
-            .background(color.opacity(0.1))
+            .background(isSelected ? color : color.opacity(0.1))
             .cornerRadius(12)
-            .foregroundColor(color)
+            .foregroundColor(isSelected ? .white : color)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
         }
     }
 }

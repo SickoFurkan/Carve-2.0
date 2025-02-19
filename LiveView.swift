@@ -7,16 +7,14 @@ struct LiveView: View {
             // Active Users Card
             CardView {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Active Now")
+                    Text("Recent Activity")
                         .font(.headline)
                     
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 16) {
-                            ForEach(0..<5) { _ in
-                                ActiveUserView()
-                            }
+                    ForEach(0..<4) { index in
+                        if index < 3 {
+                            Divider()
                         }
-                        .padding(.horizontal, 4)
+                        ActivityRow()
                     }
                 }
                 .padding()
@@ -43,14 +41,16 @@ struct LiveView: View {
             // Recent Activity Card
             CardView {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Recent Activity")
+                    Text("Active Now")
                         .font(.headline)
                     
-                    ForEach(0..<4) { index in
-                        ActivityRow()
-                        if index < 3 {
-                            Divider()
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 16) {
+                            ForEach(0..<5) { _ in
+                                ActiveUserView()
+                            }
                         }
+                        .padding(.horizontal, 4)
                     }
                 }
                 .padding()

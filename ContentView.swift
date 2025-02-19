@@ -13,6 +13,7 @@ struct CustomTabBar: View {
     @Binding var selectedTab: Int
     @Binding var showingWorkoutSheet: Bool
     let items: [(image: String, title: String)]
+    private let lightHaptic = UIImpactFeedbackGenerator(style: .light)
     
     var body: some View {
         HStack {
@@ -24,6 +25,7 @@ struct CustomTabBar: View {
                     title: item.title
                 )
                 .onTapGesture {
+                    lightHaptic.impactOccurred(intensity: 0.3)
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                         selectedTab = index
                     }
@@ -38,27 +40,42 @@ struct CustomTabBar: View {
         .padding(.vertical, 12)
         .background(
             ZStack {
-                // Blur effect
                 TranslucentBackground()
                 
-                // Top border line
+                // Bottom border line
                 Rectangle()
                     .fill(Color.gray.opacity(0.2))
                     .frame(height: 0.5)
                     .frame(maxWidth: .infinity)
-                    .position(x: UIScreen.main.bounds.width/2, y: 0)
+                    .position(x: UIScreen.main.bounds.width/2, y: UIScreen.main.bounds.height)
             }
         )
         .clipShape(RoundedRectangle(cornerRadius: 25))
-        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: -2)
+        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 2)
         .padding(.horizontal)
-        .padding(.bottom, 20)
+        .padding(.bottom, 4)
+        .padding(.top, 20)
         .gesture(
             DragGesture(minimumDistance: 20)
+                .onChanged { _ in
+                    lightHaptic.impactOccurred(intensity: 0.2)
+                }
                 .onEnded { gesture in
                     if gesture.translation.height < -50 { // Swipe up
+                        lightHaptic.impactOccurred(intensity: 0.3)
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                             showingWorkoutSheet = true
+                        }
+                    } else if abs(gesture.translation.width) > 50 { // Horizontal swipe
+                        lightHaptic.impactOccurred(intensity: 0.3)
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            if gesture.translation.width > 0 && selectedTab > 0 {
+                                // Swipe right
+                                selectedTab -= 1
+                            } else if gesture.translation.width < 0 && selectedTab < items.count - 1 {
+                                // Swipe left
+                                selectedTab += 1
+                            }
                         }
                     }
                 }
@@ -157,6 +174,10 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @ObservedObject private var keyboardHandler = KeyboardHandler()
     
+    // Update haptic feedback generator
+    private let lightHaptic = UIImpactFeedbackGenerator(style: .light)
+    private let mediumHaptic = UIImpactFeedbackGenerator(style: .medium)
+    
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -237,6 +258,24 @@ struct ContentView: View {
                 .ignoresSafeArea()
                 .zIndex(0)
             
+            // Navigation Bar
+            NavigationBar(
+                title: "Carve",
+                selectedDate: $selectedDate,
+                pageType: selectedTab == 0 ? .muscleUps : .forkDowns,
+                onMenuTap: {
+                    withAnimation(.easeInOut) {
+                        showingSideMenu = true
+                    }
+                },
+                onProfileTap: {
+                    showingProfile = true
+                }
+            )
+            .environmentObject(nutritionStore)
+            .environmentObject(workoutStore)
+            .zIndex(2)
+            
             TabView(selection: $selectedTab) {
                 MuscleUpsView(selectedDate: $selectedDate)
                     .tag(0)
@@ -255,14 +294,20 @@ struct ContentView: View {
                     .tag(3)
                     .ignoresSafeArea(.container, edges: .bottom)
             }
+            .onChange(of: selectedTab) { newValue in
+                lightHaptic.impactOccurred(intensity: 0.2)
+            }
             .padding(.top, 160)
             .scrollIndicators(.hidden)
             .ignoresSafeArea(.container, edges: .bottom)
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             .zIndex(1)
-            .overlay(
-                VStack {
-                    Spacer()
+            
+            // Bottom Tab Bar and Plus Button
+            VStack {
+                Spacer()
+                ZStack {
+                    // Tab Bar
                     CustomTabBar(
                         selectedTab: $selectedTab,
                         showingWorkoutSheet: $showingWorkoutSheet,
@@ -273,73 +318,77 @@ struct ContentView: View {
                             ("person.2.fill", "Live")
                         ]
                     )
-                }
-            )
-            .overlay(
-                // Plus button
-                Button(action: {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        showingWorkoutSheet = true
-                    }
-                }) {
-                    ZStack {
-                        // Main button background
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    gradient: Gradient(colors: [
-                                        Color.blue,
-                                        Color.blue // Making both colors solid blue
-                                    ]),
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
+                    
+                    // Plus Button
+                    Button(action: {
+                        lightHaptic.impactOccurred(intensity: 0.3)
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            showingWorkoutSheet = true
+                        }
+                    }) {
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color.blue,
+                                            Color.blue
+                                        ]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
                                 )
-                            )
-                            .frame(width: 60, height: 60)
-                            .shadow(color: .blue.opacity(0.3), radius: 10, x: 0, y: 5)
-                        
-                        // Plus icon
-                        Image(systemName: "plus")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(.white)
+                                .frame(width: 60, height: 60)
+                                .shadow(color: .blue.opacity(0.3), radius: 10, x: 0, y: 5)
+                            
+                            Image(systemName: "plus")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundColor(.white)
+                        }
                     }
-                    .scaleEffect(showingWorkoutSheet ? 0.9 : 1.0)
-                }
-                .padding(.bottom, 90)
-                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: showingWorkoutSheet),
-                alignment: .bottom
-            )
-            
-            // Navigation Bar
-            NavigationBar(
-                title: "Carve",
-                selectedDate: $selectedDate,
-                pageType: selectedTab == 0 ? .muscleUps : .forkDowns,
-                onMenuTap: {
-                    withAnimation(.easeInOut) {
-                        showingSideMenu = true
-                    }
-                },
-                onProfileTap: {
-                    showingProfile = true
-                }
-            )
-            .environmentObject(nutritionStore)
-            .environmentObject(workoutStore)
-            .sheet(isPresented: $showingProfile) {
-                NavigationView {
-                    ProfileView()
+                    .offset(y: -45)
+                    .frame(width: 60, height: 60)
+                    .contentShape(Circle())
+                    .simultaneousGesture(
+                        TapGesture()
+                            .onEnded { _ in
+                                lightHaptic.impactOccurred(intensity: 0.3)
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    showingWorkoutSheet = true
+                                }
+                            }
+                    )
+                    .gesture(
+                        DragGesture(minimumDistance: 20)
+                            .onChanged { _ in
+                                lightHaptic.impactOccurred(intensity: 0.2)
+                            }
+                            .onEnded { gesture in
+                                if gesture.translation.height < -50 { // Swipe up
+                                    lightHaptic.impactOccurred(intensity: 0.3)
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                        showingWorkoutSheet = true
+                                    }
+                                }
+                            }
+                    )
                 }
             }
-            .sheet(isPresented: $showingCamera) {
-                CameraView(nutritionStore: nutritionStore)
+            .zIndex(2)
+        }
+        .sheet(isPresented: $showingProfile) {
+            NavigationView {
+                ProfileView()
             }
-            .sheet(isPresented: $showingWorkoutSheet) {
-                WorkoutCameraSheet(isPresented: $showingWorkoutSheet, nutritionStore: nutritionStore)
-                    .environmentObject(workoutStore)
-                    .presentationDetents([.height(UIScreen.main.bounds.height * 0.85)])
-                    .presentationDragIndicator(.visible)
-            }
+        }
+        .sheet(isPresented: $showingCamera) {
+            CameraView(nutritionStore: nutritionStore)
+        }
+        .sheet(isPresented: $showingWorkoutSheet) {
+            AddWorkoutFoodSheet(isPresented: $showingWorkoutSheet, nutritionStore: nutritionStore)
+                .environmentObject(workoutStore)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
         }
     }
     
