@@ -13,7 +13,7 @@ class OnboardingViewModel: ObservableObject {
     @Published var username = ""
     @Published var fullName = ""
     @Published var birthDate = Date()
-    @Published var gender: Gender = .preferNotToSay
+    @Published var gender: UserGender = .preferNotToSay
     @Published var height: String = ""
     @Published var weight: String = ""
     @Published var activityLevel: String?
@@ -218,35 +218,40 @@ class OnboardingViewModel: ObservableObject {
             // Update existing profile
             profile = UserProfile(
                 id: existingProfile.id,
+                name: existingProfile.name,
                 email: existingProfile.email,
-                username: existingProfile.username,
-                fullName: existingProfile.fullName,
-                birthDate: existingProfile.birthDate,
-                gender: existingProfile.gender,
-                height: existingProfile.height,
-                weight: existingProfile.weight,
+                username: username,
                 createdAt: existingProfile.createdAt,
+                preferences: existingProfile.preferences,
+                fullName: fullName,
+                height: Double(height) ?? existingProfile.height,
+                weight: Double(weight) ?? existingProfile.weight,
                 dailyCalorieGoal: calorieGoalValue,
                 dailyProteinGoal: proteinGoalValue,
                 dailyCarbsGoal: carbsGoalValue,
-                dailyFatGoal: fatGoalValue
+                dailyFatGoal: fatGoalValue,
+                gender: gender,
+                birthDate: birthDate,
+                foodEntries: existingProfile.foodEntries
             )
         } else {
             // Create new profile
             profile = UserProfile(
                 id: user.uid,
+                name: fullName,
                 email: user.email ?? "",
                 username: username,
+                createdAt: Date(),
+                preferences: [:],
                 fullName: fullName,
-                birthDate: birthDate,
-                gender: gender,
                 height: Double(height) ?? 0,
                 weight: Double(weight) ?? 0,
-                createdAt: Date(),
                 dailyCalorieGoal: calorieGoalValue,
                 dailyProteinGoal: proteinGoalValue,
                 dailyCarbsGoal: carbsGoalValue,
-                dailyFatGoal: fatGoalValue
+                dailyFatGoal: fatGoalValue,
+                gender: gender,
+                birthDate: birthDate
             )
         }
         

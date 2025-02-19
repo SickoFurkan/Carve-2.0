@@ -2,380 +2,265 @@ import SwiftUI
 import PhotosUI
 
 public struct HomePageView: View {
-    @StateObject private var viewModel: FoodEntryViewModel
-    @Environment(\.colorScheme) var colorScheme
-    @Binding var selectedDate: Date
-    @ObservedObject var nutritionStore: NutritionStore
-    @State private var foodEntries: [FoodEntry] = []
-    @State private var isAnalyzingPhoto = false
-    @State private var showCamera = false
-    @State private var tempImage: UIImage?
-    @EnvironmentObject var firebaseService: FirebaseService
-    @State private var userProfile: UserProfile?
-    @FocusState private var focusedField: Field?
+    @StateObject private var viewModel = FoodEntryViewModel()
+    @EnvironmentObject private var firebaseService: FirebaseService
+    @EnvironmentObject private var profileManager: ProfileManager
+    @Binding private var selectedDate: Date
+    @State private var showCamera = true
+    @State private var selectedImage: PhotosPickerItem?
+    @State private var isAnalyzing = false
+    private var nutritionStore: NutritionStore
+    private let chatGPTService = ChatGPTService()
     
     public init(selectedDate: Binding<Date>, nutritionStore: NutritionStore) {
         self._selectedDate = selectedDate
         self.nutritionStore = nutritionStore
-        self._viewModel = StateObject(wrappedValue: FoodEntryViewModel(selectedDate: selectedDate.wrappedValue))
-    }
-    
-    public enum Field {
-        case foodName
-        case amount
-    }
-    
-    private var dailyGoals: (calories: Int, protein: Int, carbs: Int, fat: Int) {
-        if let profile = userProfile {
-            return (
-                calories: profile.dailyCalorieGoal,
-                protein: profile.dailyProteinGoal,
-                carbs: profile.dailyCarbsGoal,
-                fat: profile.dailyFatGoal
-            )
-        } else {
-            return (
-                calories: Configuration.defaultDailyCalories,
-                protein: Configuration.defaultProteinGoal,
-                carbs: Configuration.defaultCarbsGoal,
-                fat: Configuration.defaultFatGoal
-            )
-        }
-    }
-    
-    private var consumedNutrition: (calories: Int, protein: Int, carbs: Int, fat: Int) {
-        var calories = 0
-        var protein = 0
-        var carbs = 0
-        var fat = 0
-        
-        for entry in foodEntries {
-            calories += entry.calories
-            protein += entry.protein
-            carbs += entry.carbs
-            fat += entry.fat
-        }
-        
-        return (calories: calories, protein: protein, carbs: carbs, fat: fat)
-    }
-    
-    private var remainingNutrition: (calories: Int, protein: Int, carbs: Int, fat: Int) {
-        let consumed = consumedNutrition
-        
-        let remainingCalories = dailyGoals.calories - consumed.calories
-        let remainingProtein = dailyGoals.protein - consumed.protein
-        let remainingCarbs = dailyGoals.carbs - consumed.carbs
-        let remainingFat = dailyGoals.fat - consumed.fat
-        
-        return (
-            calories: remainingCalories,
-            protein: remainingProtein,
-            carbs: remainingCarbs,
-            fat: remainingFat
-        )
-    }
-    
-    private var progressPercentage: Double {
-        let remaining = Double(remainingNutrition.calories)
-        let goal = Double(dailyGoals.calories)
-        return remaining / goal
-    }
-    
-    // MARK: - Helper Methods
-    private func getTextColor() -> Color {
-        colorScheme == .dark ? .white : .black
-    }
-    
-    private func getBackgroundOpacity() -> Double {
-        colorScheme == .dark ? 0.2 : 0.3
-    }
-    
-    private func getButtonBackground(isAnalyzing: Bool) -> Color {
-        isAnalyzing ? .gray : .blue
-    }
-    
-    // MARK: - Food Entry Views
-    private var foodEntryTitle: some View {
-        Text("Voedsel Invoer")
-            .font(.headline)
-    }
-    
-    private var foodNameField: some View {
-        TextField("Voedsel naam", text: $viewModel.foodName)
-            .textFieldStyle(RoundedBorderTextFieldStyle())
-            .focused($focusedField, equals: .foodName)
-            .submitLabel(.next)
-            .onSubmit {
-                focusedField = .amount
-            }
-    }
-    
-    private var amountField: some View {
-        TextField("Hoeveelheid in gram", text: $viewModel.foodAmount)
-            .textFieldStyle(RoundedBorderTextFieldStyle())
-            .keyboardType(.numberPad)
-            .focused($focusedField, equals: .amount)
-            .submitLabel(.done)
-            .onSubmit {
-                focusedField = nil
-            }
-    }
-    
-    private var addButton: some View {
-        Button(action: {
-            focusedField = nil
-            Task {
-                if let analysis = await viewModel.analyzeFoodEntry() {
-                    let entry = FoodEntry(
-                        name: viewModel.foodName,
-                        amount: Int(viewModel.foodAmount) ?? 0,
-                        calories: analysis.calories,
-                        protein: analysis.protein,
-                        carbs: analysis.carbs,
-                        fat: analysis.fat
-                    )
-                    foodEntries.append(entry)
-                    viewModel.clearFields()
-                }
-            }
-        }) {
-            Text(viewModel.isAnalyzing ? "Bezig..." : "Handmatig Toevoegen")
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .background(getButtonBackground(isAnalyzing: viewModel.isAnalyzing))
-                .cornerRadius(8)
-        }
-        .disabled(viewModel.isAnalyzing)
-    }
-    
-    private var manualEntrySection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            foodNameField
-            amountField
-            addButton
-        }
-    }
-    
-    private var foodEntryCard: some View {
-        CardView {
-            VStack(alignment: .leading, spacing: 10) {
-                foodEntryTitle
-                manualEntrySection
-                Divider()
-                    .padding(.vertical, 8)
-                photoAnalysisSection
-            }
-        }
-    }
-    
-    // MARK: - Title View
-    private var titleView: some View {
-        Text("Dagelijks Overzicht")
-            .font(.headline)
-            .foregroundColor(getTextColor())
-    }
-    
-    // MARK: - Progress Circle Views
-    private var backgroundCircle: some View {
-        Circle()
-            .stroke(lineWidth: 20)
-            .foregroundColor(Color.gray.opacity(getBackgroundOpacity()))
-    }
-    
-    private var progressCircle: some View {
-        Circle()
-            .trim(from: 0.0, to: progressPercentage)
-            .stroke(style: StrokeStyle(lineWidth: 20, lineCap: .round, lineJoin: .round))
-            .foregroundColor(.green)
-            .rotationEffect(Angle(degrees: 270.0))
-    }
-    
-    private var nutritionInfoView: some View {
-        VStack {
-            if userProfile == nil {
-                ProgressView()
-                    .scaleEffect(1.5)
-                    .frame(height: 50)
-            } else {
-                Text("\(remainingNutrition.calories)")
-                    .font(.title)
-                    .bold()
-                Text("van \(dailyGoals.calories) kcal over")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-            }
-        }
-    }
-    
-    private var circularProgressChart: some View {
-        ZStack {
-            backgroundCircle
-            progressCircle
-            nutritionInfoView
-        }
-        .frame(height: 200)
-        .padding()
-    }
-    
-    private var macrosProgressView: some View {
-        HStack(spacing: 20) {
-            MacroProgressBar(
-                label: "Proteïne",
-                current: remainingNutrition.protein,
-                goal: dailyGoals.protein,
-                unit: "g",
-                color: .blue,
-                isLoading: userProfile == nil
-            )
-            
-            MacroProgressBar(
-                label: "Koolhydraten",
-                current: remainingNutrition.carbs,
-                goal: dailyGoals.carbs,
-                unit: "g",
-                color: .orange,
-                isLoading: userProfile == nil
-            )
-            
-            MacroProgressBar(
-                label: "Vetten",
-                current: remainingNutrition.fat,
-                goal: dailyGoals.fat,
-                unit: "g",
-                color: .red,
-                isLoading: userProfile == nil
-            )
-        }
-        .padding(.horizontal)
-    }
-    
-    private var dailyProgressCard: some View {
-        CardView {
-            VStack(spacing: 16) {
-                titleView
-                circularProgressChart
-                macrosProgressView
-            }
-        }
-    }
-    
-    private var photoAnalysisSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Foto Analyse")
-                .font(.subheadline)
-            
-            HStack(spacing: 8) {
-                PhotosPicker(selection: Binding(
-                    get: { nil },
-                    set: { newValue in
-                        if let newValue {
-                            Task {
-                                isAnalyzingPhoto = true
-                                do {
-                                    let data = try await newValue.loadTransferable(type: Data.self)
-                                    if let data = data, let image = UIImage(data: data) {
-                                        await MainActor.run {
-                                            viewModel.setImage(image)
-                                        }
-                                    }
-                                } catch {
-                                    print("Error loading image: \(error)")
-                                }
-                                isAnalyzingPhoto = false
-                            }
-                        }
-                    }
-                ), matching: .images) {
-                    HStack {
-                        Image(systemName: "photo")
-                        Text("Galerij")
-                    }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(isAnalyzingPhoto ? Color.gray : Color.blue)
-                    .cornerRadius(8)
-                }
-                .disabled(isAnalyzingPhoto)
-                
-                Button(action: {
-                    showCamera = true
-                }) {
-                    HStack {
-                        Image(systemName: "camera")
-                        Text("Camera")
-                    }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(Color.blue)
-                    .cornerRadius(8)
-                }
-            }
-            
-            // Replace sample images with PhotoGalleryView
-            PhotoGalleryView { selectedImage in
-                viewModel.setImage(selectedImage)
-            }
-        }
     }
     
     public var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                dailyProgressCard
-                foodEntryCard
-            }
-            .padding(.top)
-        }
-        .scrollDismissesKeyboard(.immediately)
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Gereed") {
-                    focusedField = nil
+        ZStack {
+            AuroraBackground(content: { EmptyView() })
+                .ignoresSafeArea()
+                .zIndex(0)
+            
+            ScrollView {
+                VStack(spacing: 16) {
+                    if let profile = profileManager.userProfile {
+                        Text("Welcome, \(profile.name)")
+                            .font(.title2)
+                            .padding(.horizontal)
+                            .foregroundColor(.white)
+                    }
+                    
+                    // Camera Card
+                    CardView {
+                        ZStack {
+                            if showCamera {
+                                CameraView(nutritionStore: nutritionStore)
+                                    .frame(height: 250)
+                                    .cornerRadius(12)
+                                    .overlay(alignment: .topTrailing) {
+                                        Button(action: {
+                                            showCamera = false
+                                        }) {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .font(.title)
+                                                .foregroundColor(.white)
+                                                .shadow(radius: 2)
+                                        }
+                                        .padding(.top, 8)
+                                        .padding(.trailing, 8)
+                                    }
+                            } else {
+                                Button(action: {
+                                    showCamera = true
+                                }) {
+                                    VStack(spacing: 8) {
+                                        Image(systemName: "camera.fill")
+                                            .font(.system(size: 32))
+                                        Text("Take Photo of Food")
+                                            .font(.headline)
+                                    }
+                                    .foregroundColor(.primary)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 250)
+                                }
+                            }
+                        }
+                    }
+                    .cardStyle()
+                    
+                    // Photo Library Card
+                    CardView {
+                        PhotosPicker(selection: $selectedImage,
+                                   matching: .images) {
+                            VStack(spacing: 8) {
+                                Image(systemName: "photo.on.rectangle")
+                                    .font(.system(size: 32))
+                                Text("Choose from Library")
+                                    .font(.headline)
+                            }
+                            .foregroundColor(.primary)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 100)
+                        }
+                        .overlay {
+                            if isAnalyzing {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle())
+                                    .scaleEffect(1.5)
+                            }
+                        }
+                    }
+                    .cardStyle()
+                    .onChange(of: selectedImage) { newValue in
+                        if let newValue {
+                            handleSelectedImage(newValue)
+                        }
+                    }
+                    
+                    // Daily Summary Card
+                    NutritionSummaryCard(nutritionStore: nutritionStore)
+                        .cardStyle()
+                    
+                    // Today's Meals
+                    CardView {
+                        FoodEntriesList(
+                            viewModel: viewModel,
+                            nutritionStore: nutritionStore,
+                            selectedDate: $selectedDate
+                        )
+                    }
+                    .cardStyle()
                 }
+                .padding(.vertical)
             }
+            .zIndex(1)
         }
-        .sheet(isPresented: $showCamera) {
-            CameraView(image: $tempImage) { capturedImage in
-                viewModel.setImage(capturedImage)
-            }
-        }
-        .task {
-            await loadUserProfile()
-            await loadFoodEntries()
-        }
-        .onChange(of: selectedDate) { oldValue, newValue in
-            Task {
-                viewModel.updateSelectedDate(newValue)
-                await loadFoodEntries()
-            }
+        .refreshable {
+            try? await profileManager.refreshProfile()
         }
     }
     
-    private func loadUserProfile() async {
-        do {
-            if let profile = try await firebaseService.getUserProfile() {
+    private func handleSelectedImage(_ item: PhotosPickerItem) {
+        isAnalyzing = true
+        
+        Task {
+            do {
+                // Load image data
+                guard let imageData = try await item.loadTransferable(type: Data.self) else {
+                    throw NSError(domain: "ImageError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to load image data"])
+                }
+                
+                guard let originalImage = UIImage(data: imageData) else {
+                    throw NSError(domain: "ImageError", code: -2, userInfo: [NSLocalizedDescriptionKey: "Failed to create image from data"])
+                }
+                
+                // Resize image to reasonable dimensions
+                let targetSize = CGSize(width: 600, height: 600)  // Reduced from 800x800
+                let resizedImage = resizeImage(originalImage, targetSize: targetSize)
+                
+                // Convert to base64 with compression
+                guard let base64String = compressAndConvertToBase64(resizedImage) else {
+                    throw NSError(domain: "ImageError", code: -3, userInfo: [NSLocalizedDescriptionKey: "Failed to compress and encode image"])
+                }
+                
+                print("📸 Starting analysis with image size: \(base64String.count / 1024)KB")
+                
+                // Create and analyze food entry
+                let entry = FoodEntry(
+                    name: "Food from Image",
+                    description: "",
+                    amount: 100,
+                    calories: 0,
+                    protein: 0,
+                    carbs: 0,
+                    fat: 0,
+                    imageBase64: base64String
+                )
+                
+                do {
+                    let analysis = try await chatGPTService.analyzeFoodEntry(entry)
+                    print("✅ Analysis successful: \(analysis.details)")
+                    
+                    let timeFormatter = DateFormatter()
+                    timeFormatter.timeStyle = .short
+                    let timeString = timeFormatter.string(from: Date())
+                    
+                    let meal = Meal(
+                        id: UUID(),
+                        name: analysis.details,
+                        calories: analysis.calories,
+                        protein: analysis.protein,
+                        carbs: analysis.carbs,
+                        fat: analysis.fat,
+                        time: timeString
+                    )
+                    
+                    await MainActor.run {
+                        nutritionStore.addMeal(meal, for: Date())
+                        isAnalyzing = false
+                        selectedImage = nil
+                    }
+                } catch {
+                    print("❌ Analysis failed: \(error.localizedDescription)")
+                    await MainActor.run {
+                        isAnalyzing = false
+                        selectedImage = nil
+                    }
+                }
+                
+            } catch {
+                print("❌ Error processing image: \(error.localizedDescription)")
                 await MainActor.run {
-                    self.userProfile = profile
+                    isAnalyzing = false
+                    selectedImage = nil
                 }
             }
-        } catch {
-            print("Error loading user profile: \(error)")
         }
     }
     
-    private func loadFoodEntries() async {
-        do {
-            let entries = try await firebaseService.getFoodEntries(for: selectedDate)
-            await MainActor.run {
-                self.foodEntries = entries
-            }
-        } catch {
-            print("Error loading food entries: \(error)")
+    // MARK: - Image Processing Helpers
+    
+    private func resizeImage(_ image: UIImage, targetSize: CGSize) -> UIImage {
+        let size = image.size
+        
+        // Smaller target size
+        let maxDimension: CGFloat = 600 // Reduced from 800
+        let scaledTargetSize = CGSize(
+            width: min(targetSize.width, maxDimension),
+            height: min(targetSize.height, maxDimension)
+        )
+        
+        let widthRatio  = scaledTargetSize.width  / size.width
+        let heightRatio = scaledTargetSize.height / size.height
+        
+        let ratio = min(widthRatio, heightRatio)
+        let newSize = CGSize(width: size.width * ratio, height: size.height * ratio)
+        
+        let rect = CGRect(x: 0, y: 0, width: newSize.width, height: newSize.height)
+        
+        UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
+        image.draw(in: rect)
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return newImage ?? image
+    }
+    
+    private func compressAndConvertToBase64(_ image: UIImage) -> String? {
+        var compression: CGFloat = 0.6  // Start with lower quality
+        let maxCompression: CGFloat = 0.1
+        let maxFileSize = 500 * 1024  // Reduced to 500 KB
+        
+        var imageData = image.jpegData(compressionQuality: compression)
+        
+        while let data = imageData, data.count > maxFileSize && compression > maxCompression {
+            compression -= 0.1
+            imageData = image.jpegData(compressionQuality: compression)
         }
+        
+        guard let finalData = imageData else { return nil }
+        
+        // Print the final size for debugging
+        let finalSize = Double(finalData.count) / 1024.0
+        print("📸 Final image size: \(String(format: "%.2f", finalSize))KB")
+        print("🔍 Compression quality: \(String(format: "%.2f", compression))")
+        
+        return finalData.base64EncodedString()
+    }
+}
+
+// MARK: - View Modifiers
+extension View {
+    func cardStyle() -> some View {
+        self
+            .padding(.horizontal)
+            .frame(maxWidth: .infinity)
+    }
+    
+    func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 }
 
@@ -384,10 +269,4 @@ public struct HomePageView: View {
         selectedDate: .constant(Date()),
         nutritionStore: NutritionStore()
     )
-}
-
-extension View {
-    func hideKeyboard() {
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-    }
 } 

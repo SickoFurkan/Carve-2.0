@@ -11,141 +11,77 @@ struct MuscleUpsView: View {
     @Binding var selectedDate: Date
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Quick Stats Card
-                CardView {
-                    VStack(spacing: 16) {
-                        HStack {
-                            Text("Deze Week")
-                                .font(.headline)
-                            Spacer()
-                            Menu {
-                                Button("Deze Week") { }
-                                Button("Deze Maand") { }
-                                Button("Dit Jaar") { }
-                            } label: {
-                                Image(systemName: "calendar")
-                                    .foregroundColor(.gray)
-                            }
-                        }
+        VStack(spacing: 16) {
+            // Workout Summary Card
+            CardView {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Today's Workout")
+                        .font(.headline)
+                    
+                    HStack(spacing: 20) {
+                        WorkoutStatView(
+                            value: "0",
+                            label: "Sets",
+                            icon: "figure.strengthtraining.traditional",
+                            unit: ""
+                        )
                         
-                        HStack(spacing: 20) {
-                            StatBlock(value: "4", label: "Workouts", icon: "figure.strengthtraining.traditional")
-                            StatBlock(value: "12,450", label: "KG Totaal", icon: "dumbbell.fill")
-                            StatBlock(value: "3", label: "PR's", icon: "star.fill")
-                        }
+                        WorkoutStatView(
+                            value: "0",
+                            label: "Minutes",
+                            icon: "clock.fill",
+                            unit: ""
+                        )
+                        
+                        WorkoutStatView(
+                            value: "0",
+                            label: "Exercises",
+                            icon: "dumbbell.fill",
+                            unit: ""
+                        )
                     }
                 }
-                
-                // Active Workout or Start Workout Button
-                if let workout = activeWorkout {
-                    ActiveWorkoutCard(workout: workout)
-                } else {
-                    CardView {
-                        Button(action: { showingNewWorkout = true }) {
-                            HStack {
-                                Image(systemName: "plus.circle.fill")
-                                Text("Start Nieuwe Training")
-                            }
-                            .foregroundColor(.blue)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                        }
-                    }
-                }
-                
-                // Progress Charts
-                CardView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Progressie")
-                            .font(.headline)
-                        
-                        Chart {
-                            ForEach(sampleProgressData) { data in
-                                LineMark(
-                                    x: .value("Datum", data.date),
-                                    y: .value("Gewicht", data.weight)
-                                )
-                                .foregroundStyle(.blue)
-                                
-                                PointMark(
-                                    x: .value("Datum", data.date),
-                                    y: .value("Gewicht", data.weight)
-                                )
-                                .foregroundStyle(.blue)
-                            }
-                        }
-                        .frame(height: 200)
-                        
-                        Text("Bench Press Progressie")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                }
-                
-                // Recent PRs
-                CardView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Recente PR's 💪")
-                            .font(.headline)
-                        
-                        ForEach(samplePRs) { pr in
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text(pr.exercise)
-                                        .font(.subheadline)
-                                    Text("\(pr.weight)kg × \(pr.reps)")
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                }
-                                Spacer()
-                                Text(pr.date)
-                                    .font(.caption2)
-                                    .foregroundColor(.gray)
-                            }
-                            if pr.id != samplePRs.last?.id {
-                                Divider()
-                            }
-                        }
-                    }
-                }
-                
-                // Challenges
-                CardView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        HStack {
-                            Text("Actieve Challenges")
-                                .font(.headline)
-                                Spacer()
-                                Button(action: { showingChallenges = true }) {
-                                    Image(systemName: "plus.circle")
-                                        .foregroundColor(.blue)
-                                }
-                        }
-                        
-                        ForEach(sampleChallenges) { challenge in
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack {
-                                    Text(challenge.title)
-                                        .font(.subheadline)
-                                    Spacer()
-                                    Text("\(challenge.progress)%")
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                }
-                                
-                                ProgressView(value: Double(challenge.progress) / 100)
-                                    .tint(.blue)
-                            }
-                            if challenge.id != sampleChallenges.last?.id {
-                                Divider()
-                            }
-                        }
-                    }
-                }
+                .padding()
             }
+            .cardStyle()
+            
+            // Muscle Groups Card
+            CardView {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Muscle Groups")
+                        .font(.headline)
+                    
+                    LazyVGrid(columns: [
+                        GridItem(.flexible()),
+                        GridItem(.flexible())
+                    ], spacing: 12) {
+                        MuscleGroupButton(name: "Chest", icon: "heart.fill", color: .red)
+                        MuscleGroupButton(name: "Back", icon: "figure.walk", color: .blue)
+                        MuscleGroupButton(name: "Legs", icon: "figure.walk", color: .purple)
+                        MuscleGroupButton(name: "Shoulders", icon: "figure.arms.open", color: .orange)
+                        MuscleGroupButton(name: "Arms", icon: "figure.arms.open", color: .green)
+                        MuscleGroupButton(name: "Core", icon: "figure.core.training", color: .yellow)
+                    }
+                }
+                .padding()
+            }
+            .cardStyle()
+            
+            // Recent Workouts Card
+            CardView {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Recent Workouts")
+                        .font(.headline)
+                    
+                    ForEach(0..<3) { _ in
+                        WorkoutRow()
+                    }
+                }
+                .padding()
+            }
+            .cardStyle()
         }
+        .standardPageLayout()
         .background(colorScheme == .dark ? Color.black : Color.white)
         .edgesIgnoringSafeArea(.all)
         .sheet(isPresented: $showingProfile) {
@@ -172,62 +108,67 @@ struct MuscleUpsView: View {
     }
 }
 
-struct StatBlock: View {
+struct MuscleGroupButton: View {
+    let name: String
+    let icon: String
+    let color: Color
+    
+    var body: some View {
+        Button(action: {}) {
+            VStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 24))
+                Text(name)
+                    .font(.subheadline)
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(color.opacity(0.1))
+            .cornerRadius(12)
+            .foregroundColor(color)
+        }
+    }
+}
+
+struct WorkoutRow: View {
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Upper Body Workout")
+                    .font(.subheadline)
+                Text("Chest, Shoulders, Arms")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+            
+            Spacer()
+            
+            Text("45 min")
+                .font(.caption)
+                .foregroundColor(.gray)
+        }
+        .padding(.vertical, 8)
+    }
+}
+
+struct WorkoutStatView: View {
     let value: String
     let label: String
     let icon: String
+    let unit: String
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 4) {
             Image(systemName: icon)
-                .font(.title2)
+                .font(.system(size: 24))
                 .foregroundColor(.blue)
-            Text(value)
-                .font(.title3)
-                .bold()
+            Text(value + unit)
+                .font(.title3.bold())
             Text(label)
                 .font(.caption)
                 .foregroundColor(.gray)
         }
         .frame(maxWidth: .infinity)
-    }
-}
-
-struct ActiveWorkoutCard: View {
-    let workout: Workout
-    
-    var body: some View {
-        CardView {
-            VStack(alignment: .leading, spacing: 16) {
-                HStack {
-                    Text(workout.name)
-                        .font(.headline)
-                    Spacer()
-                    Text(workout.duration)
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                }
-                
-                ForEach(workout.exercises) { exercise in
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(exercise.name)
-                            .font(.subheadline)
-                        Text("\(exercise.sets) sets × \(exercise.reps) reps @ \(exercise.weight)kg")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                }
-                
-                Button(action: {}) {
-                    Text("Voltooi Workout")
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
-                }
-            }
-        }
     }
 }
 

@@ -168,7 +168,7 @@ struct PersonalInfoView: View {
             DatePicker("Date of birth", selection: $viewModel.birthDate, displayedComponents: .date)
             
             Picker("Gender", selection: $viewModel.gender) {
-                ForEach(Gender.allCases, id: \.self) { gender in
+                ForEach(UserGender.allCases, id: \.self) { gender in
                     Text(gender.rawValue).tag(gender)
                 }
             }
@@ -239,7 +239,7 @@ struct NutritionGoalsView: View {
 class ProfileSetupViewModel: ObservableObject {
     @Published var fullName = ""
     @Published var birthDate = Date()
-    @Published var gender: Gender = .preferNotToSay
+    @Published var gender: UserGender = .preferNotToSay
     @Published var height = ""
     @Published var weight = ""
     @Published var calorieGoal = "2500"
@@ -365,41 +365,47 @@ class ProfileSetupViewModel: ObservableObject {
         
         do {
             let existingProfile = try await firebaseService.getUserProfile()
-            _ = existingProfile == nil
             
-            // Create new profile or use existing as base
-            var profile = existingProfile ?? UserProfile(
+            // Create base profile
+            let baseProfile = existingProfile ?? UserProfile(
                 id: userId,
+                name: fullName,
                 email: firebaseService.user?.email ?? "",
                 username: firebaseService.user?.email?.components(separatedBy: "@").first ?? "",
-                fullName: "",
-                birthDate: Date(),
-                gender: .preferNotToSay,
-                height: 0,
-                weight: 0,
-                createdAt: Date()
+                createdAt: Date(),
+                preferences: [:],
+                fullName: fullName,
+                height: Double(height) ?? 0,
+                weight: Double(weight) ?? 0,
+                dailyCalorieGoal: Int(calorieGoal) ?? 2000,
+                dailyProteinGoal: Int(proteinGoal) ?? 150,
+                dailyCarbsGoal: Int(carbsGoal) ?? 250,
+                dailyFatGoal: Int(fatGoal) ?? 65,
+                gender: gender,
+                birthDate: birthDate
             )
             
-            // Update only the required fields
-            if requiredSteps.contains(.personalInfo) {
-                profile.fullName = fullName
-                profile.birthDate = birthDate
-                profile.gender = gender
-            }
+            // Create new profile with updated fields based on required steps
+            let updatedProfile = UserProfile(
+                id: baseProfile.id,
+                name: baseProfile.name,
+                email: baseProfile.email,
+                username: baseProfile.username,
+                createdAt: baseProfile.createdAt,
+                preferences: baseProfile.preferences,
+                fullName: requiredSteps.contains(.personalInfo) ? fullName : baseProfile.fullName,
+                height: requiredSteps.contains(.bodyMeasurements) ? (Double(height) ?? baseProfile.height) : baseProfile.height,
+                weight: requiredSteps.contains(.bodyMeasurements) ? (Double(weight) ?? baseProfile.weight) : baseProfile.weight,
+                dailyCalorieGoal: requiredSteps.contains(.nutritionGoals) ? (Int(calorieGoal) ?? baseProfile.dailyCalorieGoal) : baseProfile.dailyCalorieGoal,
+                dailyProteinGoal: requiredSteps.contains(.nutritionGoals) ? (Int(proteinGoal) ?? baseProfile.dailyProteinGoal) : baseProfile.dailyProteinGoal,
+                dailyCarbsGoal: requiredSteps.contains(.nutritionGoals) ? (Int(carbsGoal) ?? baseProfile.dailyCarbsGoal) : baseProfile.dailyCarbsGoal,
+                dailyFatGoal: requiredSteps.contains(.nutritionGoals) ? (Int(fatGoal) ?? baseProfile.dailyFatGoal) : baseProfile.dailyFatGoal,
+                gender: requiredSteps.contains(.personalInfo) ? gender : baseProfile.gender,
+                birthDate: requiredSteps.contains(.personalInfo) ? birthDate : baseProfile.birthDate,
+                foodEntries: baseProfile.foodEntries
+            )
             
-            if requiredSteps.contains(.bodyMeasurements) {
-                profile.height = Double(height) ?? 0
-                profile.weight = Double(weight) ?? 0
-            }
-            
-            if requiredSteps.contains(.nutritionGoals) {
-                profile.dailyCalorieGoal = Int(calorieGoal) ?? 0
-                profile.dailyProteinGoal = Int(proteinGoal) ?? 0
-                profile.dailyCarbsGoal = Int(carbsGoal) ?? 0
-                profile.dailyFatGoal = Int(fatGoal) ?? 0
-            }
-            
-            try await firebaseService.saveUserProfile(profile)
+            try await firebaseService.saveUserProfile(updatedProfile)
             return true
         } catch {
             errorMessage = error.localizedDescription

@@ -103,11 +103,28 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
 struct CarveApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var firebaseService = FirebaseService.shared
+    @StateObject private var languageManager = LanguageManager.shared
+    @StateObject private var profileManager = ProfileManager.shared
     
     var body: some Scene {
         WindowGroup {
             SplashScreen()
                 .environmentObject(firebaseService)
+                .environmentObject(languageManager)
+                .environmentObject(profileManager)
+                .environment(\.locale, .init(identifier: languageManager.currentLanguage.rawValue))
+                .preferredColorScheme(.light)
+                .onReceive(NotificationCenter.default.publisher(for: Notification.Name("LanguageChanged"))) { _ in
+                    // Language changed, trigger view update
+                    print("🌍 Language changed to: \(languageManager.currentLanguage.displayName)")
+                }
+                .task {
+                    do {
+                        try await profileManager.fetchUserProfile()
+                    } catch {
+                        print("Failed to fetch initial profile: \(error.localizedDescription)")
+                    }
+                }
         }
     }
 }

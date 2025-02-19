@@ -18,12 +18,17 @@ public class FoodEntryViewModel: ObservableObject {
     private let chatGPTService: ChatGPTService
     private let firebaseService = FirebaseService.shared
     private var selectedDate: Date
+    private var profile: UserProfile?
     
     public init(selectedDate: Date = Date()) {
         self.chatGPTService = ChatGPTService()
         self.selectedDate = selectedDate
+        self.profile = nil  // Initialize as nil first
+        
+        // Load profile after initialization
         Task {
-            await loadFoodEntries()
+            self.profile = try? await FirebaseService.shared.getUserProfile()
+            await self.loadFoodEntries()
         }
     }
     
@@ -130,27 +135,28 @@ public class FoodEntryViewModel: ObservableObject {
     }
     
     private func saveFoodEntry(_ entry: FoodEntry) async throws {
-        print("💾 Saving food entry:")
-        print("   - Name: \(entry.name)")
-        print("   - Description: \(entry.description)")
-        print("   - Calories: \(entry.calories)")
+        print("📝 Saving food entry:")
+        print("  - Name: \(entry.name)")
+        print("  - Description: \(entry.description)")
+        print("  - Calories: \(entry.calories)")
         
         // First save to Firebase
         try await firebaseService.saveFoodEntry(entry)
         print("✅ Entry saved to Firebase")
         
         // Then update the user's profile
-        if var profile = try await firebaseService.getUserProfile() {
-            profile.addFoodEntry(entry, for: selectedDate)
-            try await firebaseService.saveUserProfile(profile)
+        if let profile = try await firebaseService.getUserProfile() {
+            let dateString = DateFormatter.foodEntryDateFormatter.string(from: selectedDate)
+            let updatedProfile = profile.addFoodEntry(entry, for: dateString)
+            try await firebaseService.saveUserProfile(updatedProfile)
             print("✅ Profile updated with new entry")
         }
         
         // Load entries again to verify the save
         await loadFoodEntries()
-        print("📝 Current entries after save:")
+        print("📋 Current entries after save:")
         for (index, entry) in foodEntries.enumerated() {
-            print("   \(index + 1). \(entry.name) - \(entry.description)")
+            print("  \(index + 1). \(entry.name) - \(entry.description)")
         }
     }
     
@@ -194,4 +200,12 @@ public class FoodEntryViewModel: ObservableObject {
             print("❌ Error deleting food entry: \(error)")
         }
     }
+}
+
+extension DateFormatter {
+    static let foodEntryDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
 } 
