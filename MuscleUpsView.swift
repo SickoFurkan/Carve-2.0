@@ -83,7 +83,6 @@ struct MuscleUpsView: View {
             .cardStyle()
         }
         .standardPageLayout()
-        .background(colorScheme == .dark ? Color.black : Color.white)
         .edgesIgnoringSafeArea(.all)
         .sheet(isPresented: $showingProfile) {
             NavigationView {

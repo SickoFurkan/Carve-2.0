@@ -168,6 +168,7 @@ private struct DateCircle: View {
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject var nutritionStore: NutritionStore
     @EnvironmentObject var workoutStore: WorkoutStore
+    @State private var isAnimating = false
     
     private let calendar = Calendar.current
     
@@ -209,7 +210,6 @@ private struct DateCircle: View {
                 return .gray.opacity(0.3)
             }
             
-            // Return the color of the first muscle group
             return muscleGroups[0].color
         }
     }
@@ -221,50 +221,77 @@ private struct DateCircle: View {
     }
     
     private var indicatorText: String {
-        switch pageType {
-        case .forkDowns:
-            let calories = nutritionStore.getTotalCaloriesForDate(date)
-            return calories > 0 ? "\(calories)" : ""
-        case .muscleUps:
-            let muscleGroups = workoutStore.getMuscleGroups(for: date)
-            return muscleGroups.isEmpty ? "" : "\(muscleGroups.count)"
-        }
+        let calories = nutritionStore.getTotalCaloriesForDate(date)
+        let goalCalories = 2000 // This should come from user's profile
+        let remaining = goalCalories - calories
+        
+        // Format number with thousands separator
+        let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = .decimal
+        numberFormatter.maximumFractionDigits = 0
+        
+        let formattedRemaining = numberFormatter.string(from: NSNumber(value: abs(remaining))) ?? "\(abs(remaining))"
+        return remaining >= 0 ? formattedRemaining : "-\(formattedRemaining)"
+    }
+    
+    private var indicatorColor: Color {
+        let calories = nutritionStore.getTotalCaloriesForDate(date)
+        let goalCalories = 2000 // This should come from user's profile
+        let remaining = goalCalories - calories
+        return remaining < 0 ? .red : .gray
     }
     
     var body: some View {
         VStack(spacing: 4) {
             ZStack {
-                // Background circle
-                Circle()
-                    .stroke(Color.gray.opacity(0.15), lineWidth: 3)
-                    .frame(width: 40, height: 40)
+                if isToday {
+                    // Today background
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.blue.opacity(0.15))
+                        .frame(width: 50, height: 50)
+                        .scaleEffect(isAnimating ? 1 : 0.8)
+                        .opacity(isAnimating ? 1 : 0)
+                }
                 
-                // Progress ring
-                Circle()
-                    .trim(from: 0, to: calorieProgress)
-                    .stroke(circleColor, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                    .frame(width: 40, height: 40)
-                    .rotationEffect(.degrees(-90))
-                
-                // Date circle
-                Circle()
-                    .fill(isSelected ? circleColor : Color.clear)
-                    .frame(width: 34, height: 34)
-                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: circleColor)
-                
-                // Date text
-                Text("\(Calendar.current.component(.day, from: date))")
-                    .font(.system(size: 16, weight: isToday ? .medium : .regular))
-                    .foregroundColor(dateTextColor)
+                ZStack {
+                    // Background circle
+                    Circle()
+                        .stroke(Color.gray.opacity(0.15), lineWidth: 3)
+                        .frame(width: 40, height: 40)
+                    
+                    // Progress ring
+                    Circle()
+                        .trim(from: 0, to: calorieProgress)
+                        .stroke(circleColor, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                        .frame(width: 40, height: 40)
+                        .rotationEffect(.degrees(-90))
+                    
+                    // Date circle
+                    Circle()
+                        .fill(isSelected ? circleColor : Color.clear)
+                        .frame(width: 34, height: 34)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: circleColor)
+                    
+                    // Date text
+                    Text("\(Calendar.current.component(.day, from: date))")
+                        .font(.system(size: 16, weight: isToday ? .medium : .regular))
+                        .foregroundColor(dateTextColor)
+                }
             }
             
-            if !indicatorText.isEmpty {
-                Text(indicatorText)
-                    .font(.system(size: 10))
-                    .foregroundColor(isToday ? .gray : .gray.opacity(0.7))
-            }
+            // Always show the calories text, regardless of page type
+            Text(indicatorText)
+                .font(.system(size: 10))
+                .foregroundColor(indicatorColor)
         }
         .frame(maxWidth: .infinity)
+        .onAppear {
+            if isToday {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.7).delay(0.1)) {
+                    isAnimating = true
+                }
+            }
+        }
     }
 }
 
@@ -693,7 +720,6 @@ struct WorkoutCameraSheet: View {
     @State private var showingCamera = false
     @State private var showingPhotoLibrary = false
     @State private var foodInput: String = ""
-    @State private var showCamera = false
     @State private var selectedWorkout: (name: String, color: Color)? = nil
     @State private var isAnalyzing = false
     @State private var throwPosition: CGSize = .zero
@@ -804,8 +830,9 @@ struct WorkoutCameraSheet: View {
                         .padding(.horizontal)
                         
                         HStack(spacing: 12) {
-                            TextField("", text: $foodInput)
+                            TextField("A banana and a small milkshake", text: $foodInput)
                                 .font(.system(size: 17))
+                                .foregroundColor(.primary)
                                 .padding()
                                 .background(Color(UIColor.systemGray6))
                                 .cornerRadius(15)
@@ -824,13 +851,13 @@ struct WorkoutCameraSheet: View {
                         .padding(.horizontal)
                         
                         // Camera View
-                        if showCamera {
+                        if showingCamera {
                             CameraView(nutritionStore: nutritionStore)
                                 .frame(height: 250)
                                 .cornerRadius(12)
                                 .overlay(alignment: .topTrailing) {
                                     Button(action: {
-                                        showCamera = false
+                                        showingCamera = false
                                     }) {
                                         Image(systemName: "xmark.circle.fill")
                                             .font(.title)
@@ -843,7 +870,7 @@ struct WorkoutCameraSheet: View {
                                 .padding([.horizontal, .bottom])
                         } else {
                             Button(action: {
-                                showCamera = true
+                                showingCamera = true
                             }) {
                                 VStack(spacing: 8) {
                                     Image(systemName: "camera.fill")
@@ -865,7 +892,7 @@ struct WorkoutCameraSheet: View {
         }
         .ignoresSafeArea()
         .onAppear {
-            foodInput = "3 bananas, 300gr milkshake"
+            showingCamera = true // Automatically show camera when sheet appears
         }
     }
     

@@ -11,6 +11,7 @@ import Combine
 
 struct CustomTabBar: View {
     @Binding var selectedTab: Int
+    @Binding var showingWorkoutSheet: Bool
     let items: [(image: String, title: String)]
     
     var body: some View {
@@ -52,6 +53,16 @@ struct CustomTabBar: View {
         .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: -2)
         .padding(.horizontal)
         .padding(.bottom, 20)
+        .gesture(
+            DragGesture(minimumDistance: 20)
+                .onEnded { gesture in
+                    if gesture.translation.height < -50 { // Swipe up
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            showingWorkoutSheet = true
+                        }
+                    }
+                }
+        )
     }
 }
 
@@ -245,7 +256,7 @@ struct ContentView: View {
                     .tag(3)
                     .ignoresSafeArea(.container, edges: .bottom)
             }
-            .padding(.top, 140)
+            .padding(.top, 160)
             .scrollIndicators(.hidden)
             .ignoresSafeArea(.container, edges: .bottom)
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
@@ -255,6 +266,7 @@ struct ContentView: View {
                     Spacer()
                     CustomTabBar(
                         selectedTab: $selectedTab,
+                        showingWorkoutSheet: $showingWorkoutSheet,
                         items: [
                             ("figure.strengthtraining.traditional", "Muscle Ups"),
                             ("fork.knife", "Fork Downs"),
@@ -278,7 +290,7 @@ struct ContentView: View {
                                 LinearGradient(
                                     gradient: Gradient(colors: [
                                         Color.blue,
-                                        Color.blue.opacity(0.9)
+                                        Color.blue // Making both colors solid blue
                                     ]),
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
