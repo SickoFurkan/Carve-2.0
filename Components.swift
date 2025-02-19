@@ -81,16 +81,8 @@ public struct NavigationBar: View {
                         .font(.headline)
                         .foregroundColor(.primary)
                         .onTapGesture {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                selectedDate = Date()
-                            }
+                            showingCalendarPicker = true
                         }
-                    
-                    Button(action: { showingCalendarPicker = true }) {
-                        Image(systemName: "calendar")
-                            .font(.system(size: 20))
-                            .foregroundColor(.blue)
-                    }
                 }
                 
                 Spacer()
@@ -106,27 +98,47 @@ public struct NavigationBar: View {
             .background(colorScheme == .dark ? Color.black : Color.white)
             
             // Date Selection Section
-            VStack(spacing: 8) {
-                // Days of the week
+            VStack(spacing: 0) {
+                // Days of the week with background highlight
                 HStack(spacing: 0) {
-                    ForEach(weekDays, id: \.self) { day in
-                        Text(day)
-                            .font(.caption)
-                            .frame(maxWidth: .infinity)
-                            .foregroundColor(.gray)
+                    ForEach(Array(zip(weekDays.indices, weekDays)), id: \.0) { index, day in
+                        let isSelected = calendar.isDate(currentWeekDates[index], inSameDayAs: selectedDate)
+                        ZStack {
+                            if isSelected {
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.blue.opacity(0.15))
+                                    .frame(width: 50, height: 30)
+                            }
+                            
+                            Text(day)
+                                .font(.caption)
+                                .frame(maxWidth: .infinity)
+                                .foregroundColor(isSelected ? .primary : .gray)
+                        }
                     }
                 }
                 
                 // Date circles with swipe gesture
                 HStack(spacing: 0) {
                     ForEach(currentWeekDates, id: \.self) { date in
-                        DateCircle(
-                            date: date,
-                            isSelected: calendar.isDate(date, inSameDayAs: selectedDate),
-                            pageType: pageType
-                        )
+                        let isSelected = calendar.isDate(date, inSameDayAs: selectedDate)
+                        ZStack {
+                            if isSelected {
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.blue.opacity(0.15))
+                                    .frame(width: 50)
+                                    .frame(height: 70)
+                                    .offset(y: -2)
+                            }
+                            
+                            DateCircle(
+                                date: date,
+                                isSelected: isSelected,
+                                pageType: pageType
+                            )
+                        }
                         .onTapGesture {
-                            withAnimation {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                 selectedDate = date
                             }
                         }
@@ -242,56 +254,40 @@ private struct DateCircle: View {
     }
     
     var body: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 8) {
+            // Date circle and progress ring
             ZStack {
-                if isToday {
-                    // Today background
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.blue.opacity(0.15))
-                        .frame(width: 50, height: 50)
-                        .scaleEffect(isAnimating ? 1 : 0.8)
-                        .opacity(isAnimating ? 1 : 0)
-                }
+                // Background circle
+                Circle()
+                    .stroke(Color.gray.opacity(0.15), lineWidth: 3)
+                    .frame(width: 40, height: 40)
                 
-                ZStack {
-                    // Background circle
-                    Circle()
-                        .stroke(Color.gray.opacity(0.15), lineWidth: 3)
-                        .frame(width: 40, height: 40)
-                    
-                    // Progress ring
-                    Circle()
-                        .trim(from: 0, to: calorieProgress)
-                        .stroke(circleColor, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                        .frame(width: 40, height: 40)
-                        .rotationEffect(.degrees(-90))
-                    
-                    // Date circle
-                    Circle()
-                        .fill(isSelected ? circleColor : Color.clear)
-                        .frame(width: 34, height: 34)
-                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: circleColor)
-                    
-                    // Date text
-                    Text("\(Calendar.current.component(.day, from: date))")
-                        .font(.system(size: 16, weight: isToday ? .medium : .regular))
-                        .foregroundColor(dateTextColor)
-                }
+                // Progress ring
+                Circle()
+                    .trim(from: 0, to: calorieProgress)
+                    .stroke(circleColor, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                    .frame(width: 40, height: 40)
+                    .rotationEffect(.degrees(-90))
+                
+                // Date circle
+                Circle()
+                    .fill(isSelected ? circleColor : Color.clear)
+                    .frame(width: 34, height: 34)
+                
+                // Date text
+                Text("\(Calendar.current.component(.day, from: date))")
+                    .font(.system(size: 16, weight: isToday ? .medium : .regular))
+                    .foregroundColor(dateTextColor)
             }
             
-            // Always show the calories text, regardless of page type
+            // Calories text
             Text(indicatorText)
                 .font(.system(size: 10))
                 .foregroundColor(indicatorColor)
+                .padding(.bottom, 2)
         }
         .frame(maxWidth: .infinity)
-        .onAppear {
-            if isToday {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.7).delay(0.1)) {
-                    isAnimating = true
-                }
-            }
-        }
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
     }
 }
 
