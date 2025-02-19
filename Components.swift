@@ -7,6 +7,8 @@ public struct NavigationBar: View {
     let onProfileTap: () -> Void
     let pageType: NavigationPageType
     @Environment(\.colorScheme) var colorScheme
+    @EnvironmentObject var workoutStore: WorkoutStore
+    @EnvironmentObject var nutritionStore: NutritionStore
     @State private var showingCalendarPicker = false
     @State private var dragOffset: CGFloat = 0
     @GestureState private var isDragging = false
@@ -148,6 +150,8 @@ public struct NavigationBar: View {
         }
         .sheet(isPresented: $showingCalendarPicker) {
             MonthCalendarView(selectedDate: $selectedDate, isPresented: $showingCalendarPicker, pageType: pageType)
+                .environmentObject(workoutStore)
+                .environmentObject(nutritionStore)
         }
     }
 }
@@ -200,7 +204,13 @@ private struct DateCircle: View {
             }
             
         case .muscleUps:
-            return workoutStore.getWorkoutColor(for: date)
+            let muscleGroups = workoutStore.getMuscleGroups(for: date)
+            if muscleGroups.isEmpty {
+                return .gray.opacity(0.3)
+            }
+            
+            // Return the color of the first muscle group
+            return muscleGroups[0].color
         }
     }
     
@@ -240,6 +250,7 @@ private struct DateCircle: View {
                 Circle()
                     .fill(isSelected ? circleColor : Color.clear)
                     .frame(width: 34, height: 34)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: circleColor)
                 
                 // Date text
                 Text("\(Calendar.current.component(.day, from: date))")
@@ -267,6 +278,8 @@ struct NavigationBar_Previews: PreviewProvider {
             onMenuTap: {},
             onProfileTap: {}
         )
+        .environmentObject(WorkoutStore())
+        .environmentObject(NutritionStore())
     }
 }
 
@@ -561,20 +574,11 @@ struct RoundedCorner: Shape {
 
 public struct StandardPageLayout: ViewModifier {
     public func body(content: Content) -> some View {
-        ZStack {
-            // Background
-            AuroraBackground(content: { EmptyView() })
-                .ignoresSafeArea()
-                .zIndex(0)
-            
-            // Content
-            ScrollView {
-                VStack(spacing: 16) {
-                    content
-                }
-                .padding(.vertical)
+        ScrollView {
+            VStack(spacing: 16) {
+                content
             }
-            .zIndex(1)
+            .padding(.vertical)
         }
     }
 }
@@ -590,6 +594,8 @@ struct MonthCalendarView: View {
     @Binding var isPresented: Bool
     let pageType: NavigationPageType
     @Environment(\.colorScheme) var colorScheme
+    @EnvironmentObject var workoutStore: WorkoutStore
+    @EnvironmentObject var nutritionStore: NutritionStore
     private let calendar = Calendar.current
     private let daysInWeek = 7
     private let columns = Array(repeating: GridItem(.flexible()), count: 7)
@@ -683,13 +689,19 @@ struct MonthCalendarView: View {
 struct WorkoutCameraSheet: View {
     @Binding var isPresented: Bool
     @ObservedObject var nutritionStore: NutritionStore
+    @EnvironmentObject var workoutStore: WorkoutStore
     @State private var showingCamera = false
     @State private var showingPhotoLibrary = false
     @State private var foodInput: String = ""
+    @State private var showCamera = false
+    @State private var selectedWorkout: (name: String, color: Color)? = nil
+    @State private var isAnalyzing = false
+    @State private var throwPosition: CGSize = .zero
+    @Namespace private var animation
     
     let workouts = [
         (name: "Chest", color: Color.red, icon: "figure.strengthtraining.traditional"),
-        (name: "Back", color: Color.green, icon: "figure.chin.up"),
+        (name: "Back", color: Color.yellow, icon: "figure.chin.up"),
         (name: "Legs", color: Color.blue, icon: "figure.walk"),
         (name: "Cardio", color: Color.green, icon: "heart.slash.fill")
     ]
@@ -712,7 +724,36 @@ struct WorkoutCameraSheet: View {
                         ForEach(workouts.indices, id: \.self) { index in
                             let workout = workouts[index]
                             Button(action: {
-                                // Handle workout selection
+                                withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                                    selectedWorkout = (workout.name, workout.color)
+                                    throwPosition = CGSize(width: 0, height: -UIScreen.main.bounds.height * 0.4)
+                                }
+
+                                // Add workout to store with appropriate muscle groups
+                                let muscleGroup: MuscleGroup
+                                switch workout.name {
+                                case "Chest":
+                                    muscleGroup = .chest
+                                case "Back":
+                                    muscleGroup = .back
+                                case "Legs":
+                                    muscleGroup = .legs
+                                default:
+                                    muscleGroup = .core // Default case
+                                }
+                                
+                                workoutStore.addWorkout(
+                                    muscleGroups: [muscleGroup],
+                                    name: workout.name,
+                                    duration: 0,
+                                    exercises: [],
+                                    for: Date()
+                                )
+
+                                // Dismiss after animation
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                                    isPresented = false
+                                }
                             }) {
                                 RoundedRectangle(cornerRadius: 20)
                                     .fill(workout.color.opacity(0.1))
@@ -728,6 +769,9 @@ struct WorkoutCameraSheet: View {
                                                 .fontWeight(.semibold)
                                         }
                                     )
+                                    .matchedGeometryEffect(id: workout.name, in: animation)
+                                    .offset(selectedWorkout?.name == workout.name ? throwPosition : .zero)
+                                    .scaleEffect(selectedWorkout?.name == workout.name ? 0.7 : 1)
                             }
                         }
                     }
@@ -740,60 +784,81 @@ struct WorkoutCameraSheet: View {
                             Rectangle()
                                 .fill(Color.gray.opacity(0.3))
                                 .frame(height: 1)
+                                .frame(maxWidth: .infinity)
                             
-                            Text("Add Food")
+                            Text("Add")
                                 .font(.title3)
                                 .fontWeight(.bold)
                                 .foregroundColor(.blue)
-                                .padding(.horizontal, 16)
+                            
+                            Text("Food")
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .foregroundColor(.blue)
                             
                             Rectangle()
                                 .fill(Color.gray.opacity(0.3))
                                 .frame(height: 1)
+                                .frame(maxWidth: .infinity)
                         }
                         .padding(.horizontal)
                         
-                        TextField("", text: $foodInput)
-                            .font(.system(size: 17))
-                            .padding()
-                            .background(Color(UIColor.systemGray6))
-                            .cornerRadius(15)
-                            .padding(.horizontal)
-                        
-                        Button(action: {
-                            showingCamera = true
-                        }) {
-                            Text("Analyze")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
+                        HStack(spacing: 12) {
+                            TextField("", text: $foodInput)
+                                .font(.system(size: 17))
                                 .padding()
-                                .background(Color.blue)
+                                .background(Color(UIColor.systemGray6))
                                 .cornerRadius(15)
+                            
+                            Button(action: {
+                                analyzeFoodAndAnimate()
+                            }) {
+                                Image(systemName: "doc.text.magnifyingglass")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.white)
+                                    .frame(width: 50, height: 50)
+                                    .background(Color.blue)
+                                    .cornerRadius(15)
+                            }
                         }
                         .padding(.horizontal)
                         
                         // Camera View
-                        Button(action: {
-                            showingCamera = true
-                        }) {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 15)
-                                    .fill(Color.blue)
-                                    .frame(height: 60)
-                                    .overlay(
-                                        HStack(spacing: 12) {
-                                            Image(systemName: "camera.fill")
-                                                .font(.system(size: 24))
-                                            Text("Take a photo")
-                                                .font(.headline)
-                                        }
-                                        .foregroundColor(.white)
-                                    )
+                        if showCamera {
+                            CameraView(nutritionStore: nutritionStore)
+                                .frame(height: 250)
+                                .cornerRadius(12)
+                                .overlay(alignment: .topTrailing) {
+                                    Button(action: {
+                                        showCamera = false
+                                    }) {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .font(.title)
+                                            .foregroundColor(.white)
+                                            .shadow(radius: 2)
+                                    }
+                                    .padding(.top, 8)
+                                    .padding(.trailing, 8)
+                                }
+                                .padding([.horizontal, .bottom])
+                        } else {
+                            Button(action: {
+                                showCamera = true
+                            }) {
+                                VStack(spacing: 8) {
+                                    Image(systemName: "camera.fill")
+                                        .font(.system(size: 32))
+                                    Text("Take Photo of Food")
+                                        .font(.headline)
+                                }
+                                .foregroundColor(.primary)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 250)
+                                .background(Color(UIColor.systemGray6))
+                                .cornerRadius(12)
                             }
+                            .padding([.horizontal, .bottom])
                         }
-                        .padding(.horizontal)
-                        .padding(.bottom, 30)
                     }
                 }
             }
@@ -802,8 +867,42 @@ struct WorkoutCameraSheet: View {
         .onAppear {
             foodInput = "3 bananas, 300gr milkshake"
         }
-        .sheet(isPresented: $showingCamera) {
-            CameraView(nutritionStore: nutritionStore)
+    }
+    
+    private func analyzeFoodAndAnimate() {
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+            isAnalyzing = true
+            throwPosition = CGSize(width: 0, height: -UIScreen.main.bounds.height * 0.4)
+        }
+        
+        // Simulate analysis time and add to meals
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            let timeFormatter = DateFormatter()
+            timeFormatter.timeStyle = .short
+            let timeString = timeFormatter.string(from: Date())
+            
+            let meal = Meal(
+                id: UUID(),
+                name: foodInput,
+                calories: 300, // Example values
+                protein: 20,
+                carbs: 40,
+                fat: 10,
+                time: timeString
+            )
+            
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                nutritionStore.addMeal(meal, for: Date())
+            }
+            
+            // Dismiss sheet after animation
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                isPresented = false
+            }
         }
     }
-} 
+}
+
+// Remove FoodEntriesList struct from here since it's in its own file
+
+// ... existing code ...

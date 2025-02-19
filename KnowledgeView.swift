@@ -3,10 +3,6 @@ import SwiftUI
 struct KnowledgeView: View {
     var body: some View {
         ZStack {
-            AuroraBackground(content: { EmptyView() })
-                .ignoresSafeArea()
-                .zIndex(0)
-            
             ScrollView {
                 VStack(spacing: 16) {
                     Text("Knowledge Base")
@@ -43,7 +39,6 @@ struct KnowledgeView: View {
                 }
                 .padding(.vertical)
             }
-            .zIndex(1)
         }
     }
 }

@@ -3,6 +3,7 @@ import Charts
 
 struct MuscleUpsView: View {
     @Environment(\.colorScheme) var colorScheme
+    @EnvironmentObject var workoutStore: WorkoutStore
     @State private var showingProfile = false
     @State private var selectedSection = 0
     @State private var showingNewWorkout = false
@@ -244,4 +245,5 @@ struct ChallengesView: View {
 
 #Preview {
     MuscleUpsView(selectedDate: .constant(Date()))
+        .environmentObject(WorkoutStore())
 } 
