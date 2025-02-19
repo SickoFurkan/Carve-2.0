@@ -56,12 +56,12 @@ struct MuscleUpsView: View {
                         GridItem(.flexible()),
                         GridItem(.flexible())
                     ], spacing: 12) {
-                        MuscleGroupButton(name: "Chest", icon: "heart.fill", color: .red)
-                        MuscleGroupButton(name: "Back", icon: "figure.walk", color: .blue)
-                        MuscleGroupButton(name: "Legs", icon: "figure.walk", color: .purple)
-                        MuscleGroupButton(name: "Shoulders", icon: "figure.arms.open", color: .orange)
-                        MuscleGroupButton(name: "Arms", icon: "figure.arms.open", color: .green)
-                        MuscleGroupButton(name: "Core", icon: "figure.core.training", color: .yellow)
+                        MuscleGroupButton(name: "Chest", icon: "heart.fill", color: .red, selectedDate: $selectedDate)
+                        MuscleGroupButton(name: "Back", icon: "figure.walk", color: .blue, selectedDate: $selectedDate)
+                        MuscleGroupButton(name: "Legs", icon: "figure.walk", color: .purple, selectedDate: $selectedDate)
+                        MuscleGroupButton(name: "Shoulders", icon: "figure.arms.open", color: .orange, selectedDate: $selectedDate)
+                        MuscleGroupButton(name: "Arms", icon: "figure.arms.open", color: .green, selectedDate: $selectedDate)
+                        MuscleGroupButton(name: "Core", icon: "figure.core.training", color: .yellow, selectedDate: $selectedDate)
                     }
                 }
                 .padding()
@@ -112,9 +112,34 @@ struct MuscleGroupButton: View {
     let name: String
     let icon: String
     let color: Color
+    @EnvironmentObject var workoutStore: WorkoutStore
+    @Binding var selectedDate: Date
+    
+    private var muscleGroup: MuscleGroup {
+        switch name {
+        case "Chest": return .chest
+        case "Back": return .back
+        case "Legs": return .legs
+        case "Shoulders": return .shoulders
+        case "Arms": return .arms
+        case "Core": return .core
+        default: return .core
+        }
+    }
     
     var body: some View {
-        Button(action: {}) {
+        Button(action: {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                // Add workout for the selected muscle group
+                workoutStore.addWorkout(
+                    muscleGroups: [muscleGroup],
+                    name: "\(name) Workout",
+                    duration: 0,
+                    exercises: [],
+                    for: selectedDate
+                )
+            }
+        }) {
             VStack(spacing: 8) {
                 Image(systemName: icon)
                     .font(.system(size: 24))
