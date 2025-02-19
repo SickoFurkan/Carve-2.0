@@ -20,13 +20,6 @@ public struct HomePageView: View {
         ZStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    if let profile = profileManager.userProfile {
-                        Text("Welcome, \(profile.name)")
-                            .font(.title2)
-                            .padding(.horizontal)
-                            .foregroundColor(.white)
-                    }
-                    
                     // Photo Library Card
                     CardView {
                         PhotosPicker(selection: $selectedImage,
