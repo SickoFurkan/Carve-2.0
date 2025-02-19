@@ -12,8 +12,11 @@ fi
 # Get current timestamp
 TIMESTAMP=$(date "+%d-%m-%Y-%H%M")
 
-# Extract the latest feature from README.md
+# Extract the latest entries from README.md
 LATEST_FEATURE=$(grep -m1 -oP '(?<=### New Features\n- ).*' README.md || echo "update")
+LATEST_BUGFIX=$(grep -m1 -oP '(?<=### Bug Fixes\n- ).*' README.md || echo "General bug fixes and stability improvements")
+LATEST_OPTIMIZATION=$(grep -m1 -oP '(?<=### Code Optimizations\n- ).*' README.md || echo "Performance and structure improvements")
+LATEST_UIUX=$(grep -m1 -oP '(?<=### UI/UX Changes\n- ).*' README.md || echo "User experience and interface improvements")
 
 # Sanitize feature name (convert to lowercase, replace spaces with hyphens, remove special chars)
 CLEAN_FEATURE=$(echo "$LATEST_FEATURE" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd '[:alnum:]-')
@@ -26,7 +29,11 @@ fi
 # Create branch name using feature and timestamp
 BRANCH_NAME="${CLEAN_FEATURE}-${TIMESTAMP}"
 
-echo "🔍 Detected latest feature: $LATEST_FEATURE"
+echo "🔍 Detected latest updates:"
+echo "📌 New Feature: $LATEST_FEATURE"
+echo "🐞 Bug Fix: $LATEST_BUGFIX"
+echo "⚡ Optimization: $LATEST_OPTIMIZATION"
+echo "🎨 UI/UX Update: $LATEST_UIUX"
 echo "🚀 Creating branch: $BRANCH_NAME"
 
 # Check for uncommitted changes
@@ -44,9 +51,14 @@ git checkout -b "$BRANCH_NAME"
 git add .
 git reset Configuration.swift
 
-# Update README with latest changes
+# Backup old README and prepare new content
 README_TEMP="README.md.tmp"
-cat > "$README_TEMP" << EOL
+
+# Preserve existing README content
+cp README.md "$README_TEMP"
+
+# Append new changes at the top while keeping the previous content intact
+cat > README.md <<EOL
 # Carve - iOS Health & Fitness App
 
 Een AI-powered gezondheids- en fitness-app die je dagelijkse voedselinname bijhoudt met behulp van AI. De app kan voedsel identificeren via foto's of handmatige invoer, en geeft je een gedetailleerd overzicht van je voedingswaarden.
@@ -55,35 +67,21 @@ Een AI-powered gezondheids- en fitness-app die je dagelijkse voedselinname bijho
 
 ### New Features
 - 🌐 $LATEST_FEATURE
-- 📱 UI enhancements
-- 🔄 Functionality improvements
-- 📊 Performance optimizations
 
 ### Bug Fixes
-- 🛠️ Recent bug fixes
-- 🔧 Stability improvements
-- ⚡️ Enhanced error handling
+- 🛠️ $LATEST_BUGFIX
 
 ### Code Optimizations
-- 📌 Code structure improvements
-- ⚡️ Performance enhancements
-- 🎯 Improved code handling
+- ⚡️ $LATEST_OPTIMIZATION
 
 ### UI/UX Changes
-- 🎨 Interface updates
-- 🖌️ Design improvements
-- ✨ Better user experience
+- 🎨 $LATEST_UIUX
 
-### Dependencies
-- 📦 Package updates
-- 🔗 Integration improvements
-- ⚙️ System enhancements
-
+$(cat "$README_TEMP")  # Append previous README content
 EOL
 
-# Append old README content after new section
-tail -n +2 README.md >> "$README_TEMP"
-mv "$README_TEMP" README.md
+# Remove temp file
+rm "$README_TEMP"
 
 # Commit changes
 echo "📌 Committing changes..."

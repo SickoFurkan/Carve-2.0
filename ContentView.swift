@@ -152,10 +152,7 @@ struct ContentView: View {
     @State private var showingCamera = false
     @State private var showingWorkoutSheet = false
     @StateObject private var nutritionStore = NutritionStore()
-    @StateObject private var workoutStore: WorkoutStore = {
-        let store = WorkoutStore()
-        return store
-    }()
+    @StateObject private var workoutStore = WorkoutStore()
     @EnvironmentObject var firebaseService: FirebaseService
     @Environment(\.scenePhase) private var scenePhase
     @ObservedObject private var keyboardHandler = KeyboardHandler()
@@ -180,6 +177,7 @@ struct ContentView: View {
                             
                             SideMenuView(isShowing: $showingSideMenu, selectedPage: $selectedTestPage)
                         }
+                        .environmentObject(workoutStore)
                     } else {
                         WelcomeView()
                     }
@@ -243,6 +241,7 @@ struct ContentView: View {
                 MuscleUpsView(selectedDate: $selectedDate)
                     .tag(0)
                     .ignoresSafeArea(.container, edges: .bottom)
+                    .environmentObject(workoutStore)
                 
                 HomePageView(selectedDate: $selectedDate, nutritionStore: nutritionStore)
                     .tag(1)
@@ -337,6 +336,7 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showingWorkoutSheet) {
                 WorkoutCameraSheet(isPresented: $showingWorkoutSheet, nutritionStore: nutritionStore)
+                    .environmentObject(workoutStore)
                     .presentationDetents([.height(UIScreen.main.bounds.height * 0.85)])
                     .presentationDragIndicator(.visible)
             }

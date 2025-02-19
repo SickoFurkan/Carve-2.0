@@ -190,7 +190,7 @@ private struct DateCircle: View {
     
     private var dateTextColor: Color {
         if isSelected {
-            return .white
+            return .primary
         } else if isToday {
             return .primary
         } else {
@@ -198,31 +198,32 @@ private struct DateCircle: View {
         }
     }
     
-    private var circleColor: Color {
-        switch pageType {
-        case .forkDowns:
-            let calories = nutritionStore.getTotalCaloriesForDate(date)
-            let goalCalories = 2000 // This should come from user's profile
-            
-            if calories == 0 {
-                return .gray.opacity(0.3)
-            } else if calories < Int(Double(goalCalories) * 0.5) {
-                return .blue.opacity(0.3)
-            } else if calories < Int(Double(goalCalories) * 0.8) {
-                return .blue.opacity(0.6)
-            } else if calories <= goalCalories {
-                return .blue
-            } else {
-                return .red
-            }
-            
-        case .muscleUps:
-            let muscleGroups = workoutStore.getMuscleGroups(for: date)
-            if muscleGroups.isEmpty {
-                return .gray.opacity(0.3)
-            }
-            
+    private var calorieRingColor: Color {
+        let calories = nutritionStore.getTotalCaloriesForDate(date)
+        let goalCalories = 2000 // This should come from user's profile
+        
+        if calories == 0 {
+            return .gray.opacity(0.3)
+        } else if calories < Int(Double(goalCalories) * 0.5) {
+            return .blue.opacity(0.3)
+        } else if calories < Int(Double(goalCalories) * 0.8) {
+            return .blue.opacity(0.6)
+        } else if calories <= goalCalories {
+            return .blue
+        } else {
+            return .red
+        }
+    }
+    
+    private var muscleGroupColor: Color {
+        let muscleGroups = workoutStore.getMuscleGroups(for: date)
+        if muscleGroups.isEmpty {
+            return .clear
+        } else if muscleGroups.count == 1 {
             return muscleGroups[0].color
+        } else {
+            // For multiple muscle groups, create a gradient or blend
+            return .blue // You can implement a more sophisticated blending here
         }
     }
     
@@ -237,7 +238,6 @@ private struct DateCircle: View {
         let goalCalories = 2000 // This should come from user's profile
         let remaining = goalCalories - calories
         
-        // Format number with thousands separator
         let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = .decimal
         numberFormatter.maximumFractionDigits = 0
@@ -262,16 +262,16 @@ private struct DateCircle: View {
                     .stroke(Color.gray.opacity(0.15), lineWidth: 3)
                     .frame(width: 40, height: 40)
                 
-                // Progress ring
+                // Progress ring for calories
                 Circle()
                     .trim(from: 0, to: calorieProgress)
-                    .stroke(circleColor, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                    .stroke(calorieRingColor, style: StrokeStyle(lineWidth: 3, lineCap: .round))
                     .frame(width: 40, height: 40)
                     .rotationEffect(.degrees(-90))
                 
-                // Date circle
+                // Inner circle for muscle groups
                 Circle()
-                    .fill(isSelected ? circleColor : Color.clear)
+                    .fill(muscleGroupColor)
                     .frame(width: 34, height: 34)
                 
                 // Date text

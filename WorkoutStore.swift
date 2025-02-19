@@ -72,8 +72,22 @@ public class WorkoutStore: ObservableObject {
             exercises: exercises
         )
         
+        // Find existing workout for the date
         if let index = workouts.firstIndex(where: { Calendar.current.isDate($0.date, inSameDayAs: date) }) {
-            workouts[index] = workout
+            // Combine muscle groups with existing ones
+            var existingMuscleGroups = Set(workouts[index].muscleGroups)
+            muscleGroups.forEach { existingMuscleGroups.insert($0) }
+            
+            // Create new workout with combined muscle groups
+            let updatedWorkout = WorkoutEntry(
+                id: workouts[index].id,
+                date: date,
+                muscleGroups: Array(existingMuscleGroups),
+                name: name,
+                duration: duration,
+                exercises: exercises
+            )
+            workouts[index] = updatedWorkout
         } else {
             workouts.append(workout)
         }
@@ -91,8 +105,13 @@ public class WorkoutStore: ObservableObject {
         let muscleGroups = getMuscleGroups(for: date)
         if muscleGroups.isEmpty {
             return .gray.opacity(0.3)
+        } else if muscleGroups.count == 1 {
+            return muscleGroups[0].color
+        } else {
+            // For multiple muscle groups, create a gradient effect
+            // You can implement a more sophisticated color blending here
+            return .blue.opacity(0.6)
         }
-        return muscleGroups[0].color // Return the color of the first muscle group
     }
     
     private func saveWorkouts() {
