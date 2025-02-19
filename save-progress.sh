@@ -1,22 +1,52 @@
 #!/bin/bash
 
+# Exit on any error
+set -e
+
+# Ensure Git is initialized
+if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "❌ Error: This is not a Git repository. Initialize Git first."
+    exit 1
+fi
+
 # Get current timestamp
 TIMESTAMP=$(date "+%d-%m-%Y-%H%M")
 
-# Create new branch name
-BRANCH_NAME="new-feature-$TIMESTAMP"
+# Extract the latest feature from README.md
+LATEST_FEATURE=$(grep -m1 -oP '(?<=### New Features\n- ).*' README.md || echo "update")
 
-# Create and checkout new branch
-git checkout -b $BRANCH_NAME
+# Sanitize feature name (convert to lowercase, replace spaces with hyphens, remove special chars)
+CLEAN_FEATURE=$(echo "$LATEST_FEATURE" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd '[:alnum:]-')
 
-# Stage all files
+# Default to "update" if no feature is found
+if [[ -z "$CLEAN_FEATURE" ]]; then
+    CLEAN_FEATURE="update"
+fi
+
+# Create branch name using feature and timestamp
+BRANCH_NAME="${CLEAN_FEATURE}-${TIMESTAMP}"
+
+echo "🔍 Detected latest feature: $LATEST_FEATURE"
+echo "🚀 Creating branch: $BRANCH_NAME"
+
+# Check for uncommitted changes
+if [ -n "$(git status --porcelain)" ]; then
+    echo "🔍 Uncommitted changes detected. Proceeding with commit..."
+else
+    echo "✅ No changes detected. Exiting..."
+    exit 0
+fi
+
+# Create and switch to new branch
+git checkout -b "$BRANCH_NAME"
+
+# Stage all files except Configuration.swift
 git add .
-
-# Unstage Configuration.swift
 git reset Configuration.swift
 
 # Update README with latest changes
-cat > README.md.tmp << EOL
+README_TEMP="README.md.tmp"
+cat > "$README_TEMP" << EOL
 # Carve - iOS Health & Fitness App
 
 Een AI-powered gezondheids- en fitness-app die je dagelijkse voedselinname bijhoudt met behulp van AI. De app kan voedsel identificeren via foto's of handmatige invoer, en geeft je een gedetailleerd overzicht van je voedingswaarden.
@@ -24,53 +54,59 @@ Een AI-powered gezondheids- en fitness-app die je dagelijkse voedselinname bijho
 ## Latest Changes ($TIMESTAMP)
 
 ### New Features
-- 🌐 Latest feature updates
+- 🌐 $LATEST_FEATURE
 - 📱 UI enhancements
 - 🔄 Functionality improvements
 - 📊 Performance optimizations
 
 ### Bug Fixes
-- Recent bug fixes
-- Stability improvements
-- Enhanced error handling
+- 🛠️ Recent bug fixes
+- 🔧 Stability improvements
+- 🏗️ Enhanced error handling
 
 ### Code Optimizations
-- Code structure improvements
-- Performance enhancements
-- Improved handling
+- 📌 Code structure improvements
+- ⚡ Performance enhancements
+- 🎯 Improved handling
 
 ### UI/UX Changes
-- Interface updates
-- Design improvements
-- Better user experience
+- 🎨 Interface updates
+- 🖌️ Design improvements
+- 🤩 Better user experience
 
 ### Dependencies
-- Package updates
-- Integration improvements
-- System enhancements
+- 📦 Package updates
+- 🔗 Integration improvements
+- 🛠️ System enhancements
 
 EOL
 
-# Append existing content after new section
-tail -n +2 README.md >> README.md.tmp
-mv README.md.tmp README.md
+# Append old README content after new section
+tail -n +2 README.md >> "$README_TEMP"
+mv "$README_TEMP" README.md
 
 # Commit changes
+echo "📌 Committing changes..."
 git add README.md
 git commit -m "Update project with latest changes ($TIMESTAMP)"
 
 # Push new branch
-git push -u origin $BRANCH_NAME
+echo "🚀 Pushing branch to GitHub..."
+git push -u origin "$BRANCH_NAME"
 
-# Merge to main
+# Switch to main, pull latest changes, merge new branch
+echo "🔄 Switching to main and merging changes..."
 git checkout main
-git merge $BRANCH_NAME
+git pull origin main  # Ensure main is up-to-date
+git merge "$BRANCH_NAME" --no-ff -m "Merge $BRANCH_NAME into main"
+
+# Push merged changes to GitHub
 git push origin main
 
-# Return to new branch
-git checkout $BRANCH_NAME
+# Return to the new branch
+git checkout "$BRANCH_NAME"
 
 echo "✅ Progress saved successfully!"
 echo "🔄 New branch created: $BRANCH_NAME"
 echo "📝 README updated with timestamp: $TIMESTAMP"
-echo "🚀 Changes pushed to GitHub" 
+echo "🚀 Changes pushed and merged into main"
