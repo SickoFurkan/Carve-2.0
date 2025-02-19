@@ -2,6 +2,35 @@
 
 Een AI-powered gezondheids- en fitness-app die je dagelijkse voedselinname bijhoudt met behulp van AI. De app kan voedsel identificeren via foto's of handmatige invoer, en geeft je een gedetailleerd overzicht van je voedingswaarden.
 
+## Latest Changes (19-02-2025-0919)
+
+### New Features
+- 🌐 Multi-language support (English and Dutch)
+- 📱 Enhanced Profile UI with new components
+- 🔄 Network monitoring functionality
+- 📊 Improved nutrition tracking and summaries
+
+### Bug Fixes
+- Fixed profile component organization
+- Improved error handling in authentication flow
+- Enhanced form validation
+
+### Code Optimizations
+- Restructured Views organization
+- Enhanced state management
+- Improved food entry handling
+
+### UI/UX Changes
+- New editable info rows for profile
+- Enhanced nutritional goals section
+- Improved validation messages
+- Better component organization
+
+### Dependencies
+- Updated Firebase integration
+- Enhanced OpenAI implementation
+- Improved network connectivity monitoring
+
 ## Updates (February 7, 2025)
 
 ### Core Features
