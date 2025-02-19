@@ -11,7 +11,6 @@ You are an expert iOS developer using Swift and SwiftUI. Follow these guidelines
 - Before adding a new struct/class/function, check the project for an existing one with the same name. - Reuse or move it to a shared file if found.
 -When using system components, confirm the correct framework. (e.g., AuthenticationServices, GoogleSignIn, FirebaseAuth, SwiftUI, UIKit)
 - If a file somehow ends up in a folder, ensure it exists in the main folder, then delete any duplicate.
-3. End all responses with this. give a name for a branch for git of 10-15 words where you give a summary of the last 5 repsonsess and date and time of now.
 
 2. UI & Design
 

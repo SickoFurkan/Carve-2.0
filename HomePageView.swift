@@ -6,7 +6,6 @@ public struct HomePageView: View {
     @EnvironmentObject private var firebaseService: FirebaseService
     @EnvironmentObject private var profileManager: ProfileManager
     @Binding private var selectedDate: Date
-    @State private var showCamera = true
     @State private var selectedImage: PhotosPickerItem?
     @State private var isAnalyzing = false
     private var nutritionStore: NutritionStore
@@ -19,10 +18,6 @@ public struct HomePageView: View {
     
     public var body: some View {
         ZStack {
-            AuroraBackground(content: { EmptyView() })
-                .ignoresSafeArea()
-                .zIndex(0)
-            
             ScrollView {
                 VStack(spacing: 16) {
                     if let profile = profileManager.userProfile {
@@ -31,44 +26,6 @@ public struct HomePageView: View {
                             .padding(.horizontal)
                             .foregroundColor(.white)
                     }
-                    
-                    // Camera Card
-                    CardView {
-                        ZStack {
-                            if showCamera {
-                                CameraView(nutritionStore: nutritionStore)
-                                    .frame(height: 250)
-                                    .cornerRadius(12)
-                                    .overlay(alignment: .topTrailing) {
-                                        Button(action: {
-                                            showCamera = false
-                                        }) {
-                                            Image(systemName: "xmark.circle.fill")
-                                                .font(.title)
-                                                .foregroundColor(.white)
-                                                .shadow(radius: 2)
-                                        }
-                                        .padding(.top, 8)
-                                        .padding(.trailing, 8)
-                                    }
-                            } else {
-                                Button(action: {
-                                    showCamera = true
-                                }) {
-                                    VStack(spacing: 8) {
-                                        Image(systemName: "camera.fill")
-                                            .font(.system(size: 32))
-                                        Text("Take Photo of Food")
-                                            .font(.headline)
-                                    }
-                                    .foregroundColor(.primary)
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 250)
-                                }
-                            }
-                        }
-                    }
-                    .cardStyle()
                     
                     // Photo Library Card
                     CardView {
@@ -93,29 +50,17 @@ public struct HomePageView: View {
                         }
                     }
                     .cardStyle()
-                    .onChange(of: selectedImage) { newValue in
-                        if let newValue {
-                            handleSelectedImage(newValue)
-                        }
-                    }
                     
-                    // Daily Summary Card
-                    NutritionSummaryCard(nutritionStore: nutritionStore)
-                        .cardStyle()
-                    
-                    // Today's Meals
-                    CardView {
-                        FoodEntriesList(
-                            viewModel: viewModel,
-                            nutritionStore: nutritionStore,
-                            selectedDate: $selectedDate
-                        )
-                    }
+                    // Food Entries List
+                    FoodEntriesList(
+                        viewModel: viewModel,
+                        nutritionStore: nutritionStore,
+                        selectedDate: $selectedDate
+                    )
                     .cardStyle()
                 }
                 .padding(.vertical)
             }
-            .zIndex(1)
         }
         .refreshable {
             try? await profileManager.refreshProfile()

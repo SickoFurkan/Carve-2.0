@@ -223,6 +223,11 @@ struct ContentView: View {
     
     var mainView: some View {
         ZStack(alignment: .top) {
+            // Single persistent aurora background
+            AuroraBackground(content: { EmptyView() })
+                .ignoresSafeArea()
+                .zIndex(0)
+            
             TabView(selection: $selectedTab) {
                 MuscleUpsView(selectedDate: $selectedDate)
                     .tag(0)
@@ -244,6 +249,7 @@ struct ContentView: View {
             .scrollIndicators(.hidden)
             .ignoresSafeArea(.container, edges: .bottom)
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+            .zIndex(1)
             .overlay(
                 VStack {
                     Spacer()

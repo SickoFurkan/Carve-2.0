@@ -84,6 +84,9 @@ class CameraViewModel: NSObject, ObservableObject, AVCapturePhotoCaptureDelegate
                 
                 self._captureSession = session
                 
+                // Start running the session
+                session.startRunning()
+                
                 DispatchQueue.main.async {
                     self.isSessionRunning = true
                 }
