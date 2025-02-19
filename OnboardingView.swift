@@ -111,7 +111,7 @@ struct OnboardingView: View {
             .datePickerStyle(.compact)
             
             Picker("Geslacht", selection: $viewModel.gender) {
-                ForEach(Gender.allCases, id: \.self) { gender in
+                ForEach(UserGender.allCases, id: \.self) { gender in
                     Text(gender.rawValue).tag(gender)
                 }
             }

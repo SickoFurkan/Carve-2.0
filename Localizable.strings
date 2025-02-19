@@ -1,0 +1,81 @@
+// General
+"app_name" = "Carve";
+"ok" = "OK";
+"cancel" = "Cancel";
+"save" = "Save";
+"delete" = "Delete";
+"edit" = "Edit";
+"done" = "Done";
+
+// Navigation
+"tab_muscle_ups" = "Muscle Ups";
+"tab_fork_downs" = "Fork Downs";
+"tab_live" = "Live";
+
+// Camera
+"camera_access_required" = "Camera access required";
+"take_photo_of_food" = "Take a photo of your food";
+"analyzing_photo" = "Analyzing...";
+"failed_to_process" = "Failed to process image";
+"failed_to_analyze" = "Failed to analyze food";
+
+// Food Entry
+"food_entry_title" = "Food Entry";
+"food_name" = "Food name";
+"amount_in_grams" = "Amount in grams";
+"add_manually" = "Add Manually";
+"analyzing" = "Analyzing...";
+"photo_analysis" = "Photo Analysis";
+"gallery" = "Gallery";
+"camera" = "Camera";
+"captured_food" = "Captured Food";
+
+// Nutrition
+"daily_summary" = "Daily Summary";
+"calories" = "Calories";
+"protein" = "Protein";
+"carbs" = "Carbs";
+"fat" = "Fat";
+"todays_meals" = "Today's Meals";
+"no_meals_added" = "No meals added yet";
+"calories_remaining" = "of %d kcal remaining";
+"g" = "g";
+
+// Profile & Settings
+"profile" = "Profile";
+"settings" = "Settings";
+"language" = "Language";
+"select_language" = "Select Language";
+"profile_setup" = "Profile Setup";
+"personal_info" = "Personal Information";
+"full_name" = "Full Name";
+"height" = "Height";
+"weight" = "Weight";
+"gender" = "Gender";
+"birth_date" = "Birth Date";
+"daily_goals" = "Daily Goals";
+"calorie_goal" = "Calorie Goal";
+"protein_goal" = "Protein Goal";
+"carbs_goal" = "Carbs Goal";
+"fat_goal" = "Fat Goal";
+
+// Errors
+"error" = "Error";
+"error_loading_profile" = "Error loading profile";
+"error_saving_profile" = "Error saving profile";
+"error_analyzing_food" = "Error analyzing food";
+"error_camera_access" = "Camera access required";
+"error_photo_library_access" = "Photo library access required";
+"rate_limit_error" = "Please wait a moment before trying again";
+
+// Network and API Errors
+"no_internet_connection" = "No internet connection. Please check your connection and try again.";
+"invalid_response" = "Invalid response from server";
+"no_content_received" = "No content received from server";
+"invalid_json_response" = "Invalid response format";
+"max_retries_exceeded" = "Request failed after multiple attempts: %@";
+"unknown_error" = "An unknown error occurred";
+
+// Success Messages
+"profile_saved" = "Profile saved successfully";
+"food_entry_saved" = "Food entry saved successfully"; 

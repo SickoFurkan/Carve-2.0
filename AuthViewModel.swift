@@ -104,49 +104,36 @@ final class AuthViewModel: ObservableObject {
     func handleAppleSignInCompletion(_ result: Result<ASAuthorization, Error>) async -> Bool {
         switch result {
         case .success(let authorization):
-            guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential else {
-                showError = true
-                errorMessage = "Invalid credentials"
-                return false
+            if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential,
+               let identityToken = appleIDCredential.identityToken,
+               let tokenString = String(data: identityToken, encoding: .utf8) {
+                
+                guard let currentNonce = currentNonce else {
+                    self.errorMessage = "Invalid state: A login callback was received, but no login request was sent."
+                    self.showError = true
+                    return false
+                }
+                
+                let credential = OAuthProvider.credential(
+                    withProviderID: "apple.com",
+                    idToken: tokenString,
+                    rawNonce: currentNonce
+                )
+                
+                do {
+                    _ = try await Auth.auth().signIn(with: credential)
+                    return true
+                } catch {
+                    self.errorMessage = error.localizedDescription
+                    self.showError = true
+                    return false
+                }
             }
-            
-            guard let appleIDToken = appleIDCredential.identityToken else {
-                showError = true
-                errorMessage = "Invalid token"
-                return false
-            }
-            
-            guard let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
-                showError = true
-                errorMessage = "Unable to serialize token"
-                return false
-            }
-            
-            guard let nonce = currentNonce else {
-                showError = true
-                errorMessage = "Invalid state: A login callback was received, but no login request was sent."
-                return false
-            }
-            
-            let credential = OAuthProvider.credential(
-                withProviderID: "apple.com",
-                idToken: idTokenString,
-                rawNonce: nonce
-            )
-            
-            do {
-                let result = try await Auth.auth().signIn(with: credential)
-                print("User signed in with Apple: \(result.user.uid)")
-                return true
-            } catch {
-                showError = true
-                errorMessage = error.localizedDescription
-                return false
-            }
+            return false
             
         case .failure(let error):
-            showError = true
-            errorMessage = error.localizedDescription
+            self.errorMessage = error.localizedDescription
+            self.showError = true
             return false
         }
     }

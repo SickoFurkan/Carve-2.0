@@ -3,13 +3,27 @@ import SwiftUI
 struct SuggestionsView: View {
     @StateObject private var viewModel = SuggestionsViewModel()
     @State private var showingNewSuggestion = false
+    @State private var errorMessage: String = ""
+    @State private var showError: Bool = false
+    @State private var suggestions: [FoodSuggestion] = []
+    @State private var selectedSuggestion: FoodSuggestion?
+    @ObservedObject var nutritionStore: NutritionStore
     @Environment(\.dismiss) var dismiss
+    
+    init(nutritionStore: NutritionStore) {
+        self.nutritionStore = nutritionStore
+    }
     
     var body: some View {
         NavigationView {
             List {
-                ForEach(viewModel.suggestions) { suggestion in
+                ForEach(suggestions) { suggestion in
                     SuggestionRow(suggestion: suggestion, viewModel: viewModel)
+                        .onTapGesture {
+                            Task {
+                                await handleSelection(suggestion)
+                            }
+                        }
                 }
             }
             .navigationTitle("Suggesties")
@@ -32,20 +46,56 @@ struct SuggestionsView: View {
                 NewSuggestionView(viewModel: viewModel)
             }
             .task {
-                await viewModel.loadSuggestions()
+                await loadSuggestions()
             }
+            .alert("Error", isPresented: $showError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(errorMessage)
+            }
+        }
+    }
+    
+    @MainActor
+    private func loadSuggestions() async {
+        do {
+            suggestions = try await viewModel.getSuggestions()
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
+        }
+    }
+    
+    @MainActor
+    private func handleSelection(_ suggestion: FoodSuggestion) async {
+        do {
+            let analysis = try await viewModel.analyzeSuggestion(suggestion)
+            if let analysis = analysis {
+                nutritionStore.addMeal(Meal(
+                    id: UUID(),
+                    name: suggestion.name,
+                    calories: analysis.calories,
+                    protein: analysis.protein,
+                    carbs: analysis.carbs,
+                    fat: analysis.fat,
+                    time: DateFormatter.localizedString(from: Date(), dateStyle: .none, timeStyle: .short)
+                ), for: Date())
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
         }
     }
 }
 
 struct SuggestionRow: View {
-    let suggestion: Suggestion
+    let suggestion: FoodSuggestion
     @ObservedObject var viewModel: SuggestionsViewModel
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(suggestion.title)
+                Text(suggestion.name)
                     .font(.headline)
                 Spacer()
                 Text("@\(suggestion.username)")
@@ -145,6 +195,13 @@ struct NewSuggestionView: View {
     }
 }
 
+struct NewSuggestionView_Previews: PreviewProvider {
+    static var previews: some View {
+        NewSuggestionView(viewModel: SuggestionsViewModel())
+    }
+}
+
 #Preview {
-    SuggestionsView()
+    SuggestionsView(nutritionStore: NutritionStore())
+        .environmentObject(FirebaseService.shared)
 } 

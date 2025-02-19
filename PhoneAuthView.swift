@@ -3,6 +3,7 @@ import FirebaseAuth
 
 struct PhoneAuthView: View {
     @Binding var isPresented: Bool
+    @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = AuthViewModel()
     @State private var phoneNumber = ""
     @State private var verificationCode = ""
@@ -38,7 +39,7 @@ struct PhoneAuthView: View {
                     Button("Verify") {
                         Task {
                             if await viewModel.verifyCode(verificationCode, verificationID: verificationID ?? "") {
-                                isPresented = false
+                                dismiss()
                             }
                         }
                     }
@@ -48,7 +49,7 @@ struct PhoneAuthView: View {
             .padding()
             .navigationTitle("Phone Verification")
             .navigationBarItems(leading: Button("Cancel") {
-                isPresented = false
+                dismiss()
             })
         }
     }

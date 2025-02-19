@@ -57,6 +57,33 @@ public class NutritionStore: ObservableObject {
         return DailyNutrition(date: date)
     }
     
+    public func getMealsForDate(_ date: Date) -> [Meal] {
+        if let nutrition = dailyNutritions.first(where: { Calendar.current.isDate($0.date, inSameDayAs: date) }) {
+            return nutrition.meals
+        }
+        return []
+    }
+    
+    public func getTodaysTotalCalories() -> Int {
+        getNutrition(for: Date()).totalCalories
+    }
+    
+    public func getTodaysTotalProtein() -> Int {
+        getNutrition(for: Date()).totalProtein
+    }
+    
+    public func getTodaysTotalCarbs() -> Int {
+        getNutrition(for: Date()).totalCarbs
+    }
+    
+    public func getTodaysTotalFat() -> Int {
+        getNutrition(for: Date()).totalFat
+    }
+    
+    public func getTotalCaloriesForDate(_ date: Date) -> Int {
+        getNutrition(for: date).totalCalories
+    }
+    
     private func saveNutritions() {
         if let encoded = try? JSONEncoder().encode(dailyNutritions) {
             userDefaults.set(encoded, forKey: storageKey)

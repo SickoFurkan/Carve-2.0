@@ -227,7 +227,7 @@ struct MeasurementsStepView: View {
 
 // MARK: - Gender Step
 struct GenderStepView: View {
-    @Binding var selectedGender: Gender
+    @Binding var selectedGender: UserGender
     @Binding var currentStep: Int
     @Binding var showError: Bool
     @Binding var errorMessage: String?
@@ -249,7 +249,7 @@ struct GenderStepView: View {
             .padding(.bottom, 20)
             
             VStack(spacing: 16) {
-                ForEach(Gender.allCases) { gender in
+                ForEach(UserGender.allCases, id: \.self) { gender in
                     Button {
                         selectedGender = gender
                         Task {
@@ -285,7 +285,7 @@ struct AuthenticationStepView: View {
     @Binding var phoneNumber: String
     @Binding var showError: Bool
     @Binding var errorMessage: String?
-    let viewModel: OnboardingViewModel
+    let viewModel: OnboardingNameViewModel
     let onPhoneVerificationComplete: () -> Void
     
     var body: some View {
@@ -326,6 +326,108 @@ struct AuthenticationStepView: View {
             .padding(.horizontal, 40)
             
             Spacer()
+        }
+    }
+}
+
+// MARK: - Username Selection Step
+struct UsernameSelectionStepView: View {
+    let firstName: String
+    @Binding var username: String
+    let isUsernameValid: Bool
+    let isCheckingUsername: Bool
+    let validationMessages: [ValidationMessage]
+    let onUsernameChanged: (String) -> Void
+    let onComplete: () -> Void
+    @FocusState private var isUsernameFocused: Bool
+    
+    var body: some View {
+        VStack(spacing: 24) {
+            VStack(spacing: 16) {
+                Text("One Last Step, \(firstName)!")
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundColor(.black)
+                
+                Text("Choose a unique username for your profile")
+                    .font(.title3)
+                    .foregroundColor(.black)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.top, 40)
+            .padding(.horizontal, 20)
+            
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    TextField("Username", text: $username)
+                        .textFieldStyle(CustomTextFieldStyle())
+                        .focused($isUsernameFocused)
+                        .textInputAutocapitalization(.never)
+                        .disableAutocorrection(true)
+                        .onChange(of: username) { newValue in
+                            onUsernameChanged(newValue)
+                        }
+                    
+                    if !username.isEmpty {
+                        if isCheckingUsername {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle())
+                        } else if isUsernameValid {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                        } else {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.red)
+                        }
+                    }
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(isUsernameValid ? Color.green : (username.isEmpty ? Color.gray : Color.red), lineWidth: 1)
+                )
+                
+                if !username.isEmpty {
+                    ForEach(validationMessages, id: \.self) { message in
+                        HStack {
+                            Image(systemName: message.isValid ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                .foregroundColor(message.isValid ? .green : .red)
+                            Text(message.text)
+                                .font(.caption)
+                                .foregroundColor(message.isValid ? .green : .red)
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 40)
+            
+            Button(action: {
+                if isUsernameValid {
+                    onComplete()
+                }
+            }) {
+                Text("Complete Setup")
+                    .font(.headline)
+                    .foregroundColor(isUsernameValid ? .white : .gray)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+            }
+            .frame(maxWidth: .infinity)
+            .background(isUsernameValid ? Color.blue : Color.gray.opacity(0.3))
+            .cornerRadius(16)
+            .disabled(!isUsernameValid)
+            .padding(.horizontal, 40)
+            .padding(.top, 20)
+            
+            Spacer(minLength: 40)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(white: 0.98))
+        .onAppear {
+            isUsernameFocused = true
+            // Set initial username suggestion based on first name
+            if username.isEmpty {
+                username = firstName.lowercased().replacingOccurrences(of: " ", with: "")
+            }
         }
     }
 } 
