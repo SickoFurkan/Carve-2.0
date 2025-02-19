@@ -50,18 +50,15 @@ class CameraViewModel: NSObject, ObservableObject, AVCapturePhotoCaptureDelegate
             
             let session = AVCaptureSession()
             
-            guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera,
-                                                           for: .video,
-                                                           position: .back) else {
-                DispatchQueue.main.async {
-                    self.error = "Failed to access camera device"
-                    self.showError = true
-                }
-                return
-            }
-            
             do {
                 session.beginConfiguration()
+                
+                // Get video device
+                guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera,
+                                                              for: .video,
+                                                              position: .back) else {
+                    throw NSError(domain: "CameraError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to access camera device"])
+                }
                 
                 // Add video input
                 let videoInput = try AVCaptureDeviceInput(device: videoDevice)
@@ -94,6 +91,7 @@ class CameraViewModel: NSObject, ObservableObject, AVCapturePhotoCaptureDelegate
                 DispatchQueue.main.async {
                     self.error = error.localizedDescription
                     self.showError = true
+                    self.isSessionRunning = false
                 }
             }
         }
@@ -175,9 +173,9 @@ struct CameraPreviewView: UIViewRepresentable {
         previewLayer.videoGravity = .resizeAspectFill
         view.layer.addSublayer(previewLayer)
         
-        // Start the session immediately
-        if !session.isRunning {
-            DispatchQueue.global(qos: .userInitiated).async {
+        // Start the session on a background thread
+        DispatchQueue.global(qos: .userInitiated).async {
+            if !session.isRunning {
                 session.startRunning()
             }
         }
@@ -215,6 +213,27 @@ struct CameraView: View {
                         ZStack {
                             CameraPreviewView(session: session)
                                 .frame(width: geometry.size.width, height: geometry.size.height)
+                                .onAppear {
+                                    // Start session on a background thread
+                                    DispatchQueue.global(qos: .userInitiated).async {
+                                        if !session.isRunning {
+                                            session.startRunning()
+                                        }
+                                    }
+                                }
+                                .onDisappear {
+                                    // Instead of stopping immediately, add a small delay
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                        // Only stop if the view is still not visible
+                                        if !viewModel.isSessionRunning {
+                                            DispatchQueue.global(qos: .userInitiated).async {
+                                                if session.isRunning {
+                                                    session.stopRunning()
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             
                             // Camera controls
                             VStack {
@@ -264,9 +283,12 @@ struct CameraView: View {
             }
         }
         .onDisappear {
+            // Ensure cleanup when view disappears
             if let session = viewModel.captureSession {
                 DispatchQueue.global(qos: .userInitiated).async {
-                    session.stopRunning()
+                    if session.isRunning {
+                        session.stopRunning()
+                    }
                 }
             }
         }
@@ -360,16 +382,41 @@ struct CameraView: View {
             height: min(targetSize.height, maxDimension)
         )
         
-        let widthRatio  = scaledTargetSize.width  / size.width
-        let heightRatio = scaledTargetSize.height / size.height
+        // Calculate aspect ratios
+        let screenAspectRatio = UIScreen.main.bounds.width / UIScreen.main.bounds.height
+        let imageAspectRatio = size.width / size.height
+        
+        // Calculate crop rect
+        var cropRect: CGRect
+        if imageAspectRatio > screenAspectRatio {
+            // Image is wider than screen
+            let newWidth = size.height * screenAspectRatio
+            let xOffset = (size.width - newWidth) / 2
+            cropRect = CGRect(x: xOffset, y: 0, width: newWidth, height: size.height)
+        } else {
+            // Image is taller than screen
+            let newHeight = size.width / screenAspectRatio
+            let yOffset = (size.height - newHeight) / 2
+            cropRect = CGRect(x: 0, y: yOffset, width: size.width, height: newHeight)
+        }
+        
+        // Crop the image
+        guard let cgImage = image.cgImage?.cropping(to: cropRect) else {
+            return image
+        }
+        let croppedImage = UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
+        
+        // Now resize the cropped image
+        let widthRatio  = scaledTargetSize.width  / cropRect.width
+        let heightRatio = scaledTargetSize.height / cropRect.height
         
         let ratio = min(widthRatio, heightRatio)
-        let newSize = CGSize(width: size.width * ratio, height: size.height * ratio)
+        let newSize = CGSize(width: cropRect.width * ratio, height: cropRect.height * ratio)
         
         let rect = CGRect(x: 0, y: 0, width: newSize.width, height: newSize.height)
         
         UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
-        image.draw(in: rect)
+        croppedImage.draw(in: rect)
         let newImage = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
         
