@@ -13,21 +13,24 @@ fi
 TIMESTAMP=$(date "+%d-%m-%Y-%H%M")
 
 # Extract the latest entries from README.md using macOS compatible grep
-LATEST_FEATURE=$(grep -m1 "^- .* Improved" README.md | sed 's/^- //' || echo "update")
-LATEST_BUGFIX=$(grep -m1 "^- .* Removed" README.md | sed 's/^- //' || echo "General bug fixes and stability improvements")
-LATEST_OPTIMIZATION=$(grep -m1 "^- .* Reorganized" README.md | sed 's/^- //' || echo "Performance and structure improvements")
-LATEST_UIUX=$(grep -m1 "^- .* Unified" README.md | sed 's/^- //' || echo "User experience and interface improvements")
+LATEST_FEATURE=$(grep -m1 "^- .* Improved" README.md | sed 's/^- //' | sed 's/[[:space:]]*[[:punct:]]*[[:space:]]*//' || echo "code-cleanup-and-organization")
+LATEST_BUGFIX=$(grep -m1 "^- .* Removed" README.md | sed 's/^- //' | sed 's/[[:space:]]*[[:punct:]]*[[:space:]]*//' || echo "General bug fixes and stability improvements")
+LATEST_OPTIMIZATION=$(grep -m1 "^- .* Reorganized" README.md | sed 's/^- //' | sed 's/[[:space:]]*[[:punct:]]*[[:space:]]*//' || echo "Performance and structure improvements")
+LATEST_UIUX=$(grep -m1 "^- .* Unified" README.md | sed 's/^- //' | sed 's/[[:space:]]*[[:punct:]]*[[:space:]]*//' || echo "User experience and interface improvements")
 
-# Sanitize feature name (remove emojis, convert to lowercase, replace spaces with hyphens)
-CLEAN_FEATURE=$(echo "$LATEST_FEATURE" | sed 's/[[:space:]]*[^[:ascii:]]*[[:space:]]*//' | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd '[:alnum:]-')
-
-# Default to "update" if no feature is found or if cleaned string is empty
-if [[ -z "$CLEAN_FEATURE" ]]; then
-    CLEAN_FEATURE="update"
+# Create a descriptive feature name from the changes
+if [[ "$LATEST_FEATURE" == *"camera"* ]]; then
+    FEATURE_DESCRIPTION="camera-improvements"
+elif [[ "$LATEST_OPTIMIZATION" == *"structure"* ]]; then
+    FEATURE_DESCRIPTION="file-restructure"
+elif [[ "$LATEST_BUGFIX" == *"redundant"* ]]; then
+    FEATURE_DESCRIPTION="remove-redundant-components"
+else
+    FEATURE_DESCRIPTION="code-cleanup-and-organization"
 fi
 
 # Create branch name using feature and timestamp
-BRANCH_NAME="${CLEAN_FEATURE}-${TIMESTAMP}"
+BRANCH_NAME="${FEATURE_DESCRIPTION}-${TIMESTAMP}"
 
 echo "🔍 Detected latest updates:"
 echo "📌 New Feature: $LATEST_FEATURE"
