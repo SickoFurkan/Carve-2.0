@@ -116,9 +116,8 @@ struct ProfileView: View {
     
     private func editingContent(_ profile: UserProfile) -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            EditableInfoRow(label: "Gebruikersnaam", text: $viewModel.tempUsername)
-            EditableInfoRow(label: "E-mail", text: .constant(profile.email))
-                .disabled(true)
+            InfoRow(label: "Gebruikersnaam", editableValue: $viewModel.tempUsername)
+            InfoRow(label: "E-mail", editableValue: .constant(profile.email), isDisabled: true)
             
             Picker("Geslacht", selection: $viewModel.tempGender) {
                 ForEach(UserGender.allCases, id: \.self) { gender in

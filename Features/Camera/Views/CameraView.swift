@@ -161,6 +161,20 @@ class CameraViewModel: NSObject, ObservableObject, AVCapturePhotoCaptureDelegate
             }
         }
     }
+    
+    func stopSession() {
+        guard let session = _captureSession, session.isRunning else { return }
+        DispatchQueue.global(qos: .userInitiated).async {
+            session.stopRunning()
+        }
+    }
+    
+    func startSession() {
+        guard let session = _captureSession, !session.isRunning else { return }
+        DispatchQueue.global(qos: .userInitiated).async {
+            session.startRunning()
+        }
+    }
 }
 
 struct CameraPreviewView: UIViewRepresentable {
@@ -214,30 +228,30 @@ struct CameraView: View {
                             CameraPreviewView(session: session)
                                 .frame(width: geometry.size.width, height: geometry.size.height)
                                 .onAppear {
-                                    // Start session on a background thread
-                                    DispatchQueue.global(qos: .userInitiated).async {
-                                        if !session.isRunning {
-                                            session.startRunning()
-                                        }
-                                    }
+                                    viewModel.startSession()
                                 }
                                 .onDisappear {
-                                    // Instead of stopping immediately, add a small delay
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                        // Only stop if the view is still not visible
-                                        if !viewModel.isSessionRunning {
-                                            DispatchQueue.global(qos: .userInitiated).async {
-                                                if session.isRunning {
-                                                    session.stopRunning()
-                                                }
-                                            }
-                                        }
+                                        viewModel.stopSession()
                                     }
                                 }
                             
                             // Camera controls
                             VStack {
+                                // Close button
+                                HStack {
+                                    Button(action: { dismiss() }) {
+                                        Image(systemName: "xmark")
+                                            .font(.title2)
+                                            .foregroundColor(.white)
+                                    }
+                                    .padding()
+                                    Spacer()
+                                }
+                                
                                 Spacer()
+                                
+                                // Capture button
                                 Button(action: captureAndAnalyze) {
                                     ZStack {
                                         Circle()
@@ -283,14 +297,7 @@ struct CameraView: View {
             }
         }
         .onDisappear {
-            // Ensure cleanup when view disappears
-            if let session = viewModel.captureSession {
-                DispatchQueue.global(qos: .userInitiated).async {
-                    if session.isRunning {
-                        session.stopRunning()
-                    }
-                }
-            }
+            viewModel.stopSession()
         }
         .alert(isPresented: $viewModel.showError) {
             Alert(

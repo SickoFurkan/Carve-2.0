@@ -12,16 +12,16 @@ fi
 # Get current timestamp
 TIMESTAMP=$(date "+%d-%m-%Y-%H%M")
 
-# Extract the latest entries from README.md
-LATEST_FEATURE=$(grep -m1 -oP '(?<=### New Features\n- ).*' README.md || echo "update")
-LATEST_BUGFIX=$(grep -m1 -oP '(?<=### Bug Fixes\n- ).*' README.md || echo "General bug fixes and stability improvements")
-LATEST_OPTIMIZATION=$(grep -m1 -oP '(?<=### Code Optimizations\n- ).*' README.md || echo "Performance and structure improvements")
-LATEST_UIUX=$(grep -m1 -oP '(?<=### UI/UX Changes\n- ).*' README.md || echo "User experience and interface improvements")
+# Extract the latest entries from README.md using macOS compatible grep
+LATEST_FEATURE=$(grep -m1 "^- .* Improved" README.md | sed 's/^- //' || echo "update")
+LATEST_BUGFIX=$(grep -m1 "^- .* Removed" README.md | sed 's/^- //' || echo "General bug fixes and stability improvements")
+LATEST_OPTIMIZATION=$(grep -m1 "^- .* Reorganized" README.md | sed 's/^- //' || echo "Performance and structure improvements")
+LATEST_UIUX=$(grep -m1 "^- .* Unified" README.md | sed 's/^- //' || echo "User experience and interface improvements")
 
-# Sanitize feature name (convert to lowercase, replace spaces with hyphens, remove special chars)
-CLEAN_FEATURE=$(echo "$LATEST_FEATURE" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd '[:alnum:]-')
+# Sanitize feature name (remove emojis, convert to lowercase, replace spaces with hyphens)
+CLEAN_FEATURE=$(echo "$LATEST_FEATURE" | sed 's/[[:space:]]*[^[:ascii:]]*[[:space:]]*//' | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd '[:alnum:]-')
 
-# Default to "update" if no feature is found
+# Default to "update" if no feature is found or if cleaned string is empty
 if [[ -z "$CLEAN_FEATURE" ]]; then
     CLEAN_FEATURE="update"
 fi
@@ -47,9 +47,13 @@ fi
 # Create and switch to new branch
 git checkout -b "$BRANCH_NAME"
 
-# Stage all files except Configuration.swift
+# Stage all files
 git add .
-git reset Configuration.swift
+
+# Skip Configuration.swift only if it exists
+if [ -f "Resources/Configuration/Configuration.swift" ]; then
+    git reset Resources/Configuration/Configuration.swift
+fi
 
 # Backup old README and prepare new content
 README_TEMP="README.md.tmp"
