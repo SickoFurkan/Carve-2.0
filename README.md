@@ -2,6 +2,24 @@
 
 Een AI-powered gezondheids- en fitness-app die je dagelijkse voedselinname bijhoudt met behulp van AI. De app kan voedsel identificeren via foto's of handmatige invoer, en geeft je een gedetailleerd overzicht van je voedingswaarden.
 
+## Latest Changes (20-02-2025-1112)
+
+### New Features
+- 🌐 🔄 Improved camera functionality with session management
+
+### Bug Fixes
+- 🛠️ ️ 🛠️ Removed redundant DatePickerView component
+
+### Code Optimizations
+- ⚡️ ⚡️ 📂 Reorganized file structure for better maintainability
+
+### UI/UX Changes
+- 🎨 🎨 Unified profile editing interface
+
+# Carve - iOS Health & Fitness App
+
+Een AI-powered gezondheids- en fitness-app die je dagelijkse voedselinname bijhoudt met behulp van AI. De app kan voedsel identificeren via foto's of handmatige invoer, en geeft je een gedetailleerd overzicht van je voedingswaarden.
+
 ## Latest Changes (20-02-2025-1108)
 
 ### New Features
@@ -331,4 +349,4 @@ The following files contain sensitive information and are NOT included in the re
 Keep these files secure and NEVER share them via Git or other public channels.
 
 ## Contact
-Developed by Furkan Çeliker  # Append previous README content  # Append previous README content  # Append previous README content
+Developed by Furkan Çeliker  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content
