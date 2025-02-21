@@ -2,6 +2,44 @@
 
 Een AI-powered gezondheids- en fitness-app die je dagelijkse voedselinname bijhoudt met behulp van AI. De app kan voedsel identificeren via foto's of handmatige invoer, en geeft je een gedetailleerd overzicht van je voedingswaarden.
 
+## Latest Changes (21-02-2025-1238)
+
+### New Features
+- 🌐 Improved component reusability across the app
+
+### Bug Fixes
+- 🛠️ 🧹 Removed duplicate CameraPreview implementation
+
+### Code Optimizations
+- ⚡️ ⚡️ ⚡️ ⚡️ ⚡️ 📂 Reorganized file structure for better maintainability
+
+### UI/UX Changes
+- 🎨 ✨ Unified workout selection interface
+
+# Carve - iOS Health & Fitness App
+
+Een AI-powered gezondheids- en fitness-app die je dagelijkse voedselinname bijhoudt met behulp van AI. De app kan voedsel identificeren via foto's of handmatige invoer, en geeft je een gedetailleerd overzicht van je voedingswaarden.
+
+## Latest Changes (20-02-2025-1130)
+
+### New Features
+- 🔄 Consolidated MuscleGroupButton into a shared component
+- 🎯 Improved component reusability across the app
+
+### Bug Fixes
+- 🧹 Removed duplicate CameraPreview implementation
+- 🔍 Fixed MuscleGroupButton redeclaration issues
+- 🛠️ Resolved Workout type ambiguity
+
+### Code Optimizations
+- 📂 Centralized shared components
+- 🎯 Removed redundant code
+- ⚡️ Improved code organization
+
+### UI/UX Changes
+- 🎨 Consistent MuscleGroupButton styling across the app
+- ✨ Unified workout selection interface
+
 ## Latest Changes (20-02-2025-1119)
 
 ### New Features
@@ -357,7 +395,7 @@ Een AI-powered gezondheids- en fitness-app die je dagelijkse voedselinname bijho
 - 📊 Nutrition tracking
 - 💪 Muscle Ups: Health and fitness tracking
 - 🔴 Live: Social features for user interaction
-- 🌙 Dark mode support
+- �� Dark mode support
 
 ### Authentication System
 - Complete authentication flow with email/password, Google, and Apple Sign In
@@ -417,4 +455,4 @@ The following files contain sensitive information and are NOT included in the re
 Keep these files secure and NEVER share them via Git or other public channels.
 
 ## Contact
-Developed by Furkan Çeliker  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content
+Developed by Furkan Çeliker  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content

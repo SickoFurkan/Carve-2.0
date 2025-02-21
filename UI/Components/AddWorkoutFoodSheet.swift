@@ -25,20 +25,55 @@ struct AddWorkoutFoodSheet: View {
                         LazyVGrid(columns: [
                             GridItem(.flexible()),
                             GridItem(.flexible())
-                        ], spacing: 12) {
-                            MuscleGroupButton(name: "Chest", icon: "figure.strengthtraining.traditional", color: .red, selectedDate: .constant(Date()), onTap: { addWorkout(.chest) })
+                        ]) {
+                            MuscleGroupButton(
+                                name: "Chest",
+                                icon: "figure.strengthtraining.traditional",
+                                color: .red,
+                                onTap: { addWorkout(.chest) }
+                            )
                             
-                            MuscleGroupButton(name: "Back", icon: "figure.walk", color: .blue, selectedDate: .constant(Date()), onTap: { addWorkout(.back) })
+                            MuscleGroupButton(
+                                name: "Back",
+                                icon: "figure.walk",
+                                color: .blue,
+                                onTap: { addWorkout(.back) }
+                            )
                             
-                            MuscleGroupButton(name: "Legs", icon: "figure.walk", color: .purple, selectedDate: .constant(Date()), onTap: { addWorkout(.legs) })
+                            MuscleGroupButton(
+                                name: "Legs",
+                                icon: "figure.walk",
+                                color: .purple,
+                                onTap: { addWorkout(.legs) }
+                            )
                             
-                            MuscleGroupButton(name: "Shoulders", icon: "figure.arms.open", color: .orange, selectedDate: .constant(Date()), onTap: { addWorkout(.shoulders) })
+                            MuscleGroupButton(
+                                name: "Shoulders",
+                                icon: "figure.arms.open",
+                                color: .orange,
+                                onTap: { addWorkout(.shoulders) }
+                            )
                             
-                            MuscleGroupButton(name: "Arms", icon: "figure.arms.open", color: .green, selectedDate: .constant(Date()), onTap: { addWorkout(.arms) })
+                            MuscleGroupButton(
+                                name: "Arms",
+                                icon: "figure.arms.open",
+                                color: .green,
+                                onTap: { addWorkout(.biceps) }
+                            )
                             
-                            MuscleGroupButton(name: "Core", icon: "figure.core.training", color: .yellow, selectedDate: .constant(Date()), onTap: { addWorkout(.core) })
+                            MuscleGroupButton(
+                                name: "Core",
+                                icon: "figure.core.training",
+                                color: .yellow,
+                                onTap: { addWorkout(.core) }
+                            )
                             
-                            MuscleGroupButton(name: "Cardio", icon: "heart.fill", color: .pink, selectedDate: .constant(Date()), onTap: { addWorkout(.cardio) })
+                            MuscleGroupButton(
+                                name: "Cardio",
+                                icon: "heart.fill",
+                                color: .pink,
+                                onTap: { addWorkout(.cardio) }
+                            )
                         }
                         .padding(.horizontal)
                     }

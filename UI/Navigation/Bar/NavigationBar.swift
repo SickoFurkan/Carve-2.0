@@ -3,7 +3,7 @@ import SwiftUI
 public struct NavigationBar: View {
     let title: String
     @Binding var selectedDate: Date
-    let onMenuTap: () -> Void
+    let onTrainerTap: () -> Void
     let onProfileTap: () -> Void
     let pageType: NavigationPageType
     @Environment(\.colorScheme) var colorScheme
@@ -18,13 +18,13 @@ public struct NavigationBar: View {
         title: String,
         selectedDate: Binding<Date>,
         pageType: NavigationPageType,
-        onMenuTap: @escaping () -> Void,
+        onTrainerTap: @escaping () -> Void,
         onProfileTap: @escaping () -> Void
     ) {
         self.title = title
         self._selectedDate = selectedDate
         self.pageType = pageType
-        self.onMenuTap = onMenuTap
+        self.onTrainerTap = onTrainerTap
         self.onProfileTap = onProfileTap
     }
     
@@ -37,34 +37,29 @@ public struct NavigationBar: View {
     // Break down the complex body property into smaller views
     private var topSection: some View {
         HStack {
-            Button(action: onMenuTap) {
-                Image(systemName: "line.horizontal.3")
-                    .font(.title2)
-                    .foregroundColor(.primary)
+            Button(action: onTrainerTap) {
+                Image(systemName: "figure.strengthtraining")
+                    .font(.system(size: 24))
+                    .foregroundColor(.blue)
+                    .frame(width: 40, height: 40)
+                    .background(Color.blue.opacity(0.1))
+                    .clipShape(Circle())
             }
             
             Spacer()
             
-            HStack(spacing: 8) {
-                Text(selectedDate.formatted(.dateTime.weekday(.wide).day().month()))
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                    .onTapGesture {
-                        showingCalendarPicker = true
-                    }
-            }
+            Text(title)
+                .font(.headline)
             
             Spacer()
             
             Button(action: onProfileTap) {
-                Image(systemName: "person.circle.fill")
+                Image(systemName: "person.circle")
                     .font(.system(size: 24))
-                    .foregroundColor(.gray)
             }
         }
         .padding(.horizontal)
-        .padding(.vertical, 8)
-        .background(colorScheme == .dark ? Color.black : Color.white)
+        .frame(height: 44)
     }
     
     private var dateSelectionSection: some View {
