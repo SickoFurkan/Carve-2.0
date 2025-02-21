@@ -304,7 +304,7 @@ struct ContentView: View {
             .onChange(of: selectedTab) { newValue in
                 lightHaptic.impactOccurred(intensity: 0.2)
             }
-            .padding(.top, 160)
+            .padding(.top, 130)
             .scrollIndicators(.hidden)
             .ignoresSafeArea(.container, edges: [.bottom])
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
