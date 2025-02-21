@@ -1,0 +1,157 @@
+import SwiftUI
+
+struct WorkoutSelectorView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var selectedDate: Date
+    @State private var selectedMuscleGroups = Set<MuscleGroup>()
+    @State private var workoutName = ""
+    @State private var workoutDuration = 60.0
+    @ObservedObject private var workoutStore = WorkoutStore.shared
+    
+    private let muscleGroups = MuscleGroup.allCases
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Workout Name
+                    TextField("Workout Name", text: $workoutName)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding(.horizontal)
+                    
+                    // Duration Slider
+                    VStack(alignment: .leading) {
+                        Text("Duration: \(Int(workoutDuration)) minutes")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                        
+                        Slider(value: $workoutDuration, in: 15...180, step: 5)
+                    }
+                    .padding(.horizontal)
+                    
+                    // Muscle Groups Grid
+                    LazyVGrid(columns: [
+                        GridItem(.flexible()),
+                        GridItem(.flexible()),
+                        GridItem(.flexible())
+                    ]) {
+                        ForEach(muscleGroups) { muscleGroup in
+                            MuscleGroupButton(
+                                name: muscleGroup.name,
+                                icon: muscleGroup.iconName,
+                                color: muscleGroup.displayColor,
+                                isSelected: selectedMuscleGroups.contains(muscleGroup),
+                                onTap: {
+                                    if selectedMuscleGroups.contains(muscleGroup) {
+                                        selectedMuscleGroups.remove(muscleGroup)
+                                    } else {
+                                        selectedMuscleGroups.insert(muscleGroup)
+                                    }
+                                }
+                            )
+                        }
+                    }
+                    .padding()
+                }
+            }
+            .navigationTitle("Add Workout")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Save") {
+                        saveWorkout()
+                        dismiss()
+                    }
+                    .disabled(selectedMuscleGroups.isEmpty || workoutName.isEmpty)
+                }
+            }
+        }
+    }
+    
+    private func saveWorkout() {
+        let workout = Workout(
+            name: workoutName,
+            duration: Int(workoutDuration),
+            muscleGroups: Array(selectedMuscleGroups),
+            date: selectedDate
+        )
+        workoutStore.addWorkout(workout)
+    }
+}
+
+struct MuscleGroupButton: View {
+    let name: String
+    let icon: String
+    let color: Color
+    let isSelected: Bool
+    let onTap: () -> Void
+    
+    var body: some View {
+        Button(action: onTap) {
+            VStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 24))
+                    .foregroundColor(isSelected ? .white : color)
+                
+                Text(name)
+                    .font(.caption)
+                    .foregroundColor(isSelected ? .white : .primary)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 80)
+            .background(isSelected ? color : Color(.systemBackground))
+            .cornerRadius(12)
+            .shadow(radius: 3)
+        }
+    }
+}
+
+extension MuscleGroup {
+    var iconName: String {
+        switch self {
+        case .chest:
+            return "figure.arms.open"
+        case .back:
+            return "figure.walk"
+        case .shoulders:
+            return "figure.boxing"
+        case .biceps:
+            return "figure.strengthtraining.traditional"
+        case .triceps:
+            return "figure.strengthtraining.functional"
+        case .legs:
+            return "figure.run"
+        case .core:
+            return "figure.core.training"
+        case .cardio:
+            return "heart.fill"
+        }
+    }
+    
+    var displayColor: Color {
+        switch self {
+        case .chest:
+            return .red
+        case .back:
+            return .blue
+        case .shoulders:
+            return .orange
+        case .biceps:
+            return .green
+        case .triceps:
+            return .purple
+        case .legs:
+            return .pink
+        case .core:
+            return .yellow
+        case .cardio:
+            return .mint
+        }
+    }
+} 

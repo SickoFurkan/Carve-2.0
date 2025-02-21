@@ -11,6 +11,13 @@ You are an expert iOS developer using Swift and SwiftUI. Follow these guidelines
 - Before adding a new struct/class/function, check the project for an existing one with the same name. - Reuse or move it to a shared file if found.
 -When using system components, confirm the correct framework. (e.g., AuthenticationServices, GoogleSignIn, FirebaseAuth, SwiftUI, UIKit)
 - If a file somehow ends up in a folder, ensure it exists in the main folder, then delete any duplicate.
+- If a file can not be found, first search the project for the file name. If not found then create the new file.
+- Can you add a small section for future error prevention. When you finish giving a response to fix an error. Can you add in the bottom how you fixed it and how you can prevent this from happening in the future. The idea is that I can teach you to prevent errors from happening in the future.
+
+Package Management Rules:
+
+1. NEVER convert an existing Xcode project to a Swift Package by creating/modifying Package.swift
+
 
 2. UI & Design
 

@@ -50,10 +50,9 @@ struct DateCircle: View {
         if muscleGroups.isEmpty {
             return .clear
         } else if muscleGroups.count == 1 {
-            return muscleGroups[0].color
+            return muscleGroups[0].displayColor
         } else {
-            // For multiple muscle groups, create a gradient or blend
-            return .blue // You can implement a more sophisticated blending here
+            return .blue
         }
     }
     
@@ -63,18 +62,16 @@ struct DateCircle: View {
         return min(Double(calories) / goalCalories, 1.0)
     }
     
+    private var hasCalories: Bool {
+        nutritionStore.getTotalCaloriesForDate(date) > 0
+    }
+    
     private var indicatorText: String {
         let calories = nutritionStore.getTotalCaloriesForDate(date)
-        let goalCalories = 2000 // This should come from user's profile
-        let remaining = goalCalories - calories
-        
-        if remaining > 0 {
-            return "\(remaining)"
-        } else if remaining < 0 {
-            return "+\(abs(remaining))"
-        } else {
-            return "0"
+        if calories > 0 {
+            return "\(calories)"
         }
+        return " " // Empty space to maintain layout
     }
     
     var body: some View {
@@ -102,12 +99,14 @@ struct DateCircle: View {
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(dateTextColor)
             }
+            .background(isSelected ? Color.blue.opacity(0.0) : Color.clear) // Remove blue background
             
-            // Indicator Text
+            // Indicator Text with consistent height
             Text(indicatorText)
                 .font(.system(size: 10))
-                .foregroundColor(isSelected ? .primary : .gray)
+                .foregroundColor(hasCalories ? (isSelected ? .primary : .gray) : .clear)
                 .frame(height: 12)
+                .contentShape(Rectangle()) // Maintains tap area
         }
         .frame(width: 50)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)

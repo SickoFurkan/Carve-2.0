@@ -161,13 +161,14 @@ struct TranslucentBackground: View {
 struct ContentView: View {
     @State private var showingProfile = false
     @State private var showingProfileSetup = false
-    @State private var selectedTab = 1
+    @State private var selectedTab = 2 // Home tab (middle)
     @State private var selectedDate = Date()
     @State private var showingSideMenu = false
     @State private var selectedTestPage: Int? = nil
     @State private var showingAddSheet = false
     @State private var showingCamera = false
     @State private var showingWorkoutSheet = false
+    @State private var showingTrainerChat = false
     @StateObject private var nutritionStore = NutritionStore()
     @StateObject private var workoutStore = WorkoutStore()
     @EnvironmentObject var firebaseService: FirebaseService
@@ -263,9 +264,9 @@ struct ContentView: View {
                 title: "Carve",
                 selectedDate: $selectedDate,
                 pageType: selectedTab == 0 ? .muscleUps : .forkDowns,
-                onMenuTap: {
+                onTrainerTap: {
                     withAnimation(.easeInOut) {
-                        showingSideMenu = true
+                        showingTrainerChat = true
                     }
                 },
                 onProfileTap: {
@@ -282,16 +283,20 @@ struct ContentView: View {
                     .ignoresSafeArea(.container, edges: .bottom)
                     .environmentObject(workoutStore)
                 
-                HomePageView(selectedDate: $selectedDate, nutritionStore: nutritionStore)
+                ForkDownsView(selectedDate: $selectedDate, nutritionStore: nutritionStore)
                     .tag(1)
                     .ignoresSafeArea(.container, edges: .bottom)
                 
-                KnowledgeView()
+                HomePageView(selectedDate: $selectedDate, nutritionStore: nutritionStore)
                     .tag(2)
                     .ignoresSafeArea(.container, edges: .bottom)
                 
-                LiveView()
+                KnowledgeView()
                     .tag(3)
+                    .ignoresSafeArea(.container, edges: .bottom)
+                
+                LiveView()
+                    .tag(4)
                     .ignoresSafeArea(.container, edges: .bottom)
             }
             .onChange(of: selectedTab) { newValue in
@@ -314,63 +319,10 @@ struct ContentView: View {
                         items: [
                             ("figure.strengthtraining.traditional", "Muscle Ups"),
                             ("fork.knife", "Fork Downs"),
+                            ("house.fill", "Home"),
                             ("book.fill", "Knowledge"),
                             ("person.2.fill", "Live")
                         ]
-                    )
-                    
-                    // Plus Button
-                    Button(action: {
-                        lightHaptic.impactOccurred(intensity: 0.3)
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            showingWorkoutSheet = true
-                        }
-                    }) {
-                        ZStack {
-                            Circle()
-                                .fill(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [
-                                            Color.blue,
-                                            Color.blue
-                                        ]),
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .frame(width: 60, height: 60)
-                                .shadow(color: .blue.opacity(0.3), radius: 10, x: 0, y: 5)
-                            
-                            Image(systemName: "plus")
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundColor(.white)
-                        }
-                    }
-                    .offset(y: -45)
-                    .frame(width: 60, height: 60)
-                    .contentShape(Circle())
-                    .simultaneousGesture(
-                        TapGesture()
-                            .onEnded { _ in
-                                lightHaptic.impactOccurred(intensity: 0.3)
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                    showingWorkoutSheet = true
-                                }
-                            }
-                    )
-                    .gesture(
-                        DragGesture(minimumDistance: 20)
-                            .onChanged { _ in
-                                lightHaptic.impactOccurred(intensity: 0.2)
-                            }
-                            .onEnded { gesture in
-                                if gesture.translation.height < -50 { // Swipe up
-                                    lightHaptic.impactOccurred(intensity: 0.3)
-                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                        showingWorkoutSheet = true
-                                    }
-                                }
-                            }
                     )
                 }
             }
@@ -389,6 +341,9 @@ struct ContentView: View {
                 .environmentObject(workoutStore)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showingTrainerChat) {
+            TrainerChatView(nutritionStore: nutritionStore, workoutStore: workoutStore)
         }
     }
     

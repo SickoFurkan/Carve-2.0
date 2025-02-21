@@ -226,12 +226,6 @@ struct Challenge: Identifiable {
     let progress: Int
 }
 
-struct Workout {
-    let name: String
-    let duration: String
-    let exercises: [Exercise]
-}
-
 struct Exercise: Identifiable {
     let id = UUID()
     let name: String
