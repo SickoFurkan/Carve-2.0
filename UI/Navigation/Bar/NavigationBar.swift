@@ -35,7 +35,7 @@ public struct NavigationBar: View {
     }
     
     private var topSection: some View {
-        VStack(spacing: 2) {
+        VStack(spacing: 0) {
             HStack {
                 Button(action: onTrainerTap) {
                     Image(systemName: "brain.head.profile")
@@ -45,11 +45,15 @@ public struct NavigationBar: View {
                 
                 Spacer()
                 
-                Text(formattedDate(from: selectedDate))
-                    .font(.headline)
-                    .onTapGesture {
-                        showingCalendarPicker = true
+                Button(action: { showingCalendarPicker = true }) {
+                    HStack(spacing: 4) {
+                        Text(monthYearString)
+                            .font(.system(size: 16, weight: .medium))
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 14, weight: .medium))
                     }
+                    .foregroundColor(.primary)
+                }
                 
                 Spacer()
                 
@@ -70,6 +74,7 @@ public struct NavigationBar: View {
                     WeekDayView(day: day, isSelected: isSelected, isToday: isToday)
                 }
             }
+            .padding(.bottom, 2)
             
             // Date circles with swipe gesture
             HStack(spacing: 0) {
@@ -99,7 +104,15 @@ public struct NavigationBar: View {
             )
         }
         .padding(.horizontal)
-        .padding(.vertical, 4)
+        .padding(.vertical, 2)
+    }
+    
+    private var monthYearString: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        formatter.locale = Locale(identifier: "en_US")
+        let formattedString = formatter.string(from: selectedDate)
+        return formattedString.prefix(1).uppercased() + formattedString.dropFirst()
     }
     
     private func formattedDate(from date: Date) -> String {
@@ -141,7 +154,7 @@ public struct NavigationBar: View {
                 
                 Text(day)
                     .font(.caption2)
-                    .frame(maxWidth: .infinity)
+                    .frame(width: 50)
                     .foregroundColor(isToday ? .red : (isSelected ? .primary : .gray))
                     .animation(.none, value: isSelected)
             }
