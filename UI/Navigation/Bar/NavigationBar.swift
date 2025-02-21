@@ -74,7 +74,7 @@ public struct NavigationBar: View {
                     WeekDayView(day: day, isSelected: isSelected, isToday: isToday)
                 }
             }
-            .padding(.bottom, 2)
+            .padding(.bottom, 1)
             
             // Date circles with swipe gesture
             HStack(spacing: 0) {
@@ -104,7 +104,7 @@ public struct NavigationBar: View {
             )
         }
         .padding(.horizontal)
-        .padding(.vertical, 2)
+        .padding(.vertical, 1)
     }
     
     private var monthYearString: String {
