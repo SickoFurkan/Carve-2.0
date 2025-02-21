@@ -26,13 +26,21 @@ public struct HomePageView: View {
                     // Header with total calories
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .top) {
-                            // Left side - Large number
-                            Text("\(nutritionStore.getTotalCaloriesForDate(selectedDate))")
-                                .font(.system(size: 64, weight: .bold))
-                                .foregroundColor(.primary)
-                            + Text(" kcal")
-                                .font(.system(size: 24))
-                                .foregroundColor(.primary.opacity(0.8))
+                            // Left side - Large number with animation
+                            VStack(alignment: .leading, spacing: 4) {
+                                VStack(alignment: .leading, spacing: 0) {
+                                    AnimatedCounter(
+                                        value: nutritionStore.getTotalCaloriesForDate(selectedDate),
+                                        fontSize: 48,
+                                        fontWeight: .bold,
+                                        textColor: .primary
+                                    )
+                                    
+                                    Text("calories")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(.primary.opacity(0.8))
+                                }
+                            }
                             
                             Spacer()
                             
@@ -61,26 +69,58 @@ public struct HomePageView: View {
                         }
                     }
                     
-                    // Progress bar
-                    GeometryReader { geometry in
-                        ZStack(alignment: .leading) {
-                            // Background bar
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.3))
-                                .frame(height: 8)
-                                .cornerRadius(4)
+                    Divider()
+                    
+                    // Food Diary List
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Today's Food")
+                            .font(.headline)
+                        
+                        ForEach(nutritionStore.getMealsForDate(selectedDate), id: \.id) { meal in
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(meal.name)
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                    
+                                    Text("\(meal.calories) kcal • P: \(meal.protein)g • F: \(meal.fat)g • C: \(meal.carbs)g")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                // Quick add buttons
+                                HStack(spacing: 12) {
+                                    Button(action: {
+                                        nutritionStore.addMeal(meal, for: selectedDate)
+                                    }) {
+                                        Image(systemName: "plus.circle.fill")
+                                            .foregroundColor(.blue)
+                                            .font(.system(size: 24))
+                                    }
+                                    
+                                    Button(action: {
+                                        nutritionStore.removeMeal(meal, for: selectedDate)
+                                    }) {
+                                        Image(systemName: "minus.circle.fill")
+                                            .foregroundColor(.red)
+                                            .font(.system(size: 24))
+                                    }
+                                }
+                            }
+                            .padding(.vertical, 8)
                             
-                            // Progress bar
-                            Rectangle()
-                                .fill(Color.orange)
-                                .frame(width: geometry.size.width * 0.7, height: 8)
-                                .cornerRadius(4)
+                            if meal.id != nutritionStore.getMealsForDate(selectedDate).last?.id {
+                                Divider()
+                            }
                         }
                     }
-                    .frame(height: 8)
                 }
                 .padding(24)
+                .background(Color(.systemBackground))
                 .cornerRadius(20)
+                .shadow(radius: 5)
                 
                 // Quick Camera Section
                 QuickCameraSection(
@@ -425,6 +465,69 @@ struct MacroProgressBar: View {
             }
             .frame(height: 4)
         }
+    }
+}
+
+struct AnimatedCounter: View {
+    let value: Int
+    let fontSize: CGFloat
+    let fontWeight: Font.Weight
+    let textColor: Color
+    @State private var animationValue: Int = 0
+    
+    init(value: Int, fontSize: CGFloat = 64, fontWeight: Font.Weight = .bold, textColor: Color = .primary) {
+        self.value = value
+        self.fontSize = fontSize
+        self.fontWeight = fontWeight
+        self.textColor = textColor
+    }
+    
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(0..<4) { index in
+                let divisor = pow(10.0, Double(3 - index))
+                let digit = (value / Int(divisor)) % 10
+                let animatedDigit = (animationValue / Int(divisor)) % 10
+                
+                SlideDigit(
+                    digit: animatedDigit,
+                    fontSize: fontSize,
+                    fontWeight: fontWeight,
+                    textColor: textColor
+                )
+            }
+        }
+        .onChange(of: value) { newValue in
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                animationValue = newValue
+            }
+        }
+        .onAppear {
+            animationValue = value
+        }
+    }
+}
+
+struct SlideDigit: View {
+    let digit: Int
+    let fontSize: CGFloat
+    let fontWeight: Font.Weight
+    let textColor: Color
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(-1...1, id: \.self) { offset in
+                Text("\((digit + offset + 10) % 10)")
+                    .font(.system(size: fontSize, weight: fontWeight, design: .rounded))
+                    .foregroundColor(textColor)
+                    .frame(width: fontSize * 0.6)
+                    .opacity(offset == 0 ? 1 : 0)
+            }
+        }
+        .frame(height: fontSize)
+        .clipped()
+        .contentShape(Rectangle())
+        .transition(.slide)
     }
 }
 
