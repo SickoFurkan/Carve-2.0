@@ -1,7 +1,6 @@
-Start all responses with 🤖 So i know that you are reading the instructions.
+Start all responses with 🤖.
 
 You are an expert iOS developer using Swift and SwiftUI. Follow these guidelines:
-
 
 1. UI & Design
 
@@ -21,12 +20,16 @@ You are an expert iOS developer using Swift and SwiftUI. Follow these guidelines
 - Use encryption, Keychain, secure networking.
 - Write XCTest and XCUITest for major flows.
 - Support localization, push notifications, background tasks.
-- Refer to Apple’s documentation for in-depth details.
+- Refer to Apple's documentation for in-depth details.
 
 4. Save progress
 1. When i say save progress in the chat, I want you to update the readme file with the current progress and the changes we have made in the code. after that run the save-progress.sh file to upload our progress to the github repository.
 
-Rules
+5. Readme.md & instructions.md
+- Readme.md, Keep a simple changelog of the changes we have made in the code. I want to keep track of the changes that are being made. Put all recent fixes in the readme.md file
+- instructions.md, When you fix an error, add the error and how you fixed it to the Coding Rules to prevent errors part in instructions.md file. If a better solution comes up replace the other rules.
+
+Coding Rules to prevent errors:
 Avoid duplicate entries in ContentView/HomepageView
 
 Before adding new code, check whether a component or logic with the same name or functionality already exists.
@@ -44,7 +47,7 @@ Model choice
 Always use gpt-4o-mini-2024-07-18 and do not switch to another model. This helps maintain consistency in generated code.
 No duplicate structs/classes/functions
 
-Before adding a new struct, class, or function, use your IDE’s search feature to check for an existing one with the same name.
+Before adding a new struct, class, or function, use your IDE's search feature to check for an existing one with the same name.
 Reuse or move existing definitions to a shared file (e.g., SharedComponents.swift) if they can be used elsewhere in the project.
 Check frameworks when using system components
 
@@ -72,7 +75,7 @@ Folder structure: Keep related views in the relevant folders (e.g., UI/Views or 
 Passing dependencies: Make sure all required data and services are explicitly passed to the view.
 Consistent naming: Follow consistent naming conventions for similar views (e.g., XYZView, XYZDetailView).
 Error Prevention
-Use explicit types when in doubt: Avoid situations where Swift’s type inference can become ambiguous.
+Use explicit types when in doubt: Avoid situations where Swift's type inference can become ambiguous.
 Reusable components: Build generic UI patterns (e.g., modals, custom buttons) as separate, reusable components.
 Document public interfaces: Provide clear guidance (e.g., header doc-comments) so other developers know how to use your components.
 Future Error Prevention
@@ -111,11 +114,60 @@ View Structure
 Use array syntax for ignoresSafeArea, e.g., ignoresSafeArea(edges: [.bottom]) instead of .bottom.
 Keep the view hierarchy consistent with proper z-index management.
 Handle keyboard properly, for example with .ignoresSafeArea(.keyboard).
-Component Organization
+Component Organization and Reuse
 
-Place related views in appropriate directories (e.g., UI/Views/Nutrition for nutrition-related screens).
-Create the necessary models before implementing views that depend on them.
-Follow consistent naming (e.g., ForkDownsView corresponds to MuscleUpsView).
+1. Single Source of Truth
+   - Keep only ONE declaration of each component
+   - Place shared components in UI/Components/
+   - Never duplicate component declarations across files
+   - If you need to modify a component, modify the shared version
+
+2. Component Location Guidelines
+   - UI/Components/ - For shared, reusable components
+   - Features/<Feature>/Components/ - For feature-specific components
+   - UI/Views/ - For full screen or major view compositions
+   - Never create duplicate component files with similar names
+
+3. Import Guidelines
+   - Use only `import SwiftUI` for accessing shared components
+   - Don't use module-style imports (e.g., import UI.Components.X) unless using SPM packages
+   - If a component needs to be shared across modules, consider creating a proper Swift Package
+
+4. Component Styling
+   - Use style enums for components with multiple visual variants
+   - Keep style definitions with the component
+   - Use default parameter values for common styles
+
+State Ownership Guidelines:
+- Keep state variables in the view that directly manages them
+- Avoid passing state through multiple view layers
+- Use @State for view-local state that doesn't need to be shared
+- Only use @Binding when the parent view needs to observe or modify the state
+- Group related state variables in the same view
+- Consider creating a dedicated view model for complex state management
+
+State Management Best Practices:
+- Use @StateObject for objects created within a view
+- Use @ObservedObject for objects passed as dependencies
+- Use @Binding for two-way state binding between parent and child views
+- Pass only required dependencies to child views
+- Avoid duplicate property declarations
+- Initialize managers and services at the appropriate level (root vs child views)
+- Use proper access control (private, internal, public) for view properties
+
+Store Usage Guidelines:
+- Always use @ObservedObject for store dependencies passed through init
+- Use @StateObject for store instances created within a view
+- Ensure store methods are called with correct model types
+- Pass stores through dependency injection rather than creating new instances
+- Keep model usage consistent across the app (e.g., use Meal instead of FoodItem for meal entries)
+
+Asynchronous Operations:
+- Use async/await instead of completion handlers or DispatchQueue when possible
+- Properly handle UI updates on the MainActor
+- Use Task for asynchronous operations in SwiftUI views
+- Handle potential errors in async operations with try-catch
+
 State Management
 
 Use the correct property wrappers (@State, @Binding, @ObservedObject) for state management.
@@ -126,3 +178,32 @@ Code Structure
 Implement the required models and stores before creating the corresponding views.
 Group related functionalities together (e.g., in a Core/ or Features/ folder).
 Keep similar features following the same patterns.
+
+
+View Modifier Guidelines:
+- Create reusable view modifiers using extension View
+- Keep styling consistent across the app by using shared modifiers
+- Use ViewBuilder for custom container views like CardView
+- Document the expected usage of custom modifiers
+- Group related modifiers into meaningful functions
+- Consider making modifiers configurable with parameters when needed
+
+Shared Component Guidelines:
+- Place reusable UI components in UI/Components directory
+- Make shared components and modifiers public for accessibility
+- Use clear naming to indicate shared vs. feature-specific components
+- Document usage requirements and examples for shared components
+- Keep shared components generic and configurable
+- Avoid duplicating shared components in feature-specific files
+
+Recent Fixes:
+- Fixed duplicate MealRow declarations by maintaining a single source of truth
+- Removed incorrect module-style imports
+- Consolidated shared components into UI/Components directory
+- Removed duplicate MealRow and NutrientLabel declarations from FoodEntriesList.swift
+- Replaced DispatchQueue.main.asyncAfter with modern async/await pattern
+- Fixed NutritionStore usage with proper ObservedObject wrapper and correct model usage
+- Fixed state management in nested views with proper property wrappers and dependency injection
+- Consolidated state management by moving state to the view that owns it
+- Added missing cardStyle view modifier and CardView component for consistent styling
+- Moved CardView and cardStyle to shared UI/Components directory to prevent duplicates

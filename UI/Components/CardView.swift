@@ -1,7 +1,7 @@
 import SwiftUI
 
 public struct CardView<Content: View>: View {
-    let content: Content
+    private let content: Content
     
     public init(@ViewBuilder content: () -> Content) {
         self.content = content()
@@ -11,8 +11,18 @@ public struct CardView<Content: View>: View {
         content
             .padding()
             .background(Color(.systemBackground))
-            .cornerRadius(10)
+            .cornerRadius(20)
             .shadow(radius: 5)
-            .padding(.horizontal)
+    }
+}
+
+// MARK: - View Modifiers
+public extension View {
+    func cardStyle() -> some View {
+        self
+            .padding()
+            .background(Color(.systemBackground))
+            .cornerRadius(20)
+            .shadow(radius: 5)
     }
 } 

@@ -78,7 +78,7 @@ struct SuggestionsView: View {
                     protein: analysis.protein,
                     carbs: analysis.carbs,
                     fat: analysis.fat,
-                    time: DateFormatter.localizedString(from: Date(), dateStyle: .none, timeStyle: .short)
+                    date: Date()
                 ), for: Date())
             }
         } catch {

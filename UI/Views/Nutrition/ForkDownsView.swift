@@ -47,7 +47,7 @@ struct ForkDownsView: View {
                         .font(.headline)
                     
                     ForEach(nutritionStore.getMealsForDate(selectedDate)) { meal in
-                        MealRow(meal: meal)
+                        MealRow(meal: meal, style: .compact)
                     }
                     
                     Button(action: {
@@ -90,28 +90,5 @@ struct NutritionStatView: View {
                 .foregroundColor(.gray)
         }
         .frame(maxWidth: .infinity)
-    }
-}
-
-struct MealRow: View {
-    let meal: Meal
-    
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(meal.name)
-                    .font(.subheadline)
-                Text("\(meal.calories) kcal")
-                    .font(.caption)
-                    .foregroundColor(.gray)
-            }
-            
-            Spacer()
-            
-            Text(meal.timeString)
-                .font(.caption)
-                .foregroundColor(.gray)
-        }
-        .padding(.vertical, 8)
     }
 } 
