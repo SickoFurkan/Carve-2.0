@@ -21,6 +21,67 @@ public struct HomePageView: View {
     public var body: some View {
         ScrollView {
             VStack(spacing: 20) {
+                // Today's Nutrition Card
+                VStack(spacing: 24) {
+                    // Header with total calories
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(alignment: .top) {
+                            // Left side - Large number
+                            Text("\(nutritionStore.getTotalCaloriesForDate(selectedDate))")
+                                .font(.system(size: 64, weight: .bold))
+                                .foregroundColor(.primary)
+                            + Text(" kcal")
+                                .font(.system(size: 24))
+                                .foregroundColor(.primary.opacity(0.8))
+                            
+                            Spacer()
+                            
+                            // Right side - Macros with progress bars
+                            VStack(alignment: .leading, spacing: 12) {
+                                MacroProgressBar(
+                                    label: "Protein",
+                                    value: nutritionStore.getTotalProteinForDate(selectedDate),
+                                    target: 292,
+                                    color: .blue
+                                )
+                                MacroProgressBar(
+                                    label: "Fat",
+                                    value: nutritionStore.getTotalFatForDate(selectedDate),
+                                    target: 404,
+                                    color: .blue
+                                )
+                                MacroProgressBar(
+                                    label: "Carbs",
+                                    value: nutritionStore.getTotalCarbsForDate(selectedDate),
+                                    target: 382,
+                                    color: .blue
+                                )
+                            }
+                            .frame(width: 120)
+                        }
+                    }
+                    
+                    // Progress bar
+                    GeometryReader { geometry in
+                        ZStack(alignment: .leading) {
+                            // Background bar
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.3))
+                                .frame(height: 8)
+                                .cornerRadius(4)
+                            
+                            // Progress bar
+                            Rectangle()
+                                .fill(Color.orange)
+                                .frame(width: geometry.size.width * 0.7, height: 8)
+                                .cornerRadius(4)
+                        }
+                    }
+                    .frame(height: 8)
+                }
+                .padding(24)
+                .cornerRadius(20)
+                
                 // Quick Camera Section
                 QuickCameraSection(
                     nutritionStore: nutritionStore,
@@ -45,6 +106,45 @@ public struct HomePageView: View {
         .refreshable {
             try? await profileManager.refreshProfile()
         }
+    }
+}
+
+struct MacroStatCard: View {
+    let label: String
+    let current: Int
+    let target: Int
+    let color: Color
+    
+    private var progress: CGFloat {
+        CGFloat(current) / CGFloat(target)
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(label)
+                .font(.system(size: 16))
+                .foregroundColor(color.opacity(0.8))
+            
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Rectangle()
+                        .fill(color.opacity(0.3))
+                        .frame(height: 4)
+                        .cornerRadius(2)
+                    
+                    Rectangle()
+                        .fill(color)
+                        .frame(width: geometry.size.width * progress, height: 4)
+                        .cornerRadius(2)
+                }
+            }
+            .frame(height: 4)
+            
+            Text("\(current) / \(target)g")
+                .font(.system(size: 14))
+                .foregroundColor(color)
+        }
+        .frame(maxWidth: .infinity)
     }
 }
 
@@ -269,6 +369,62 @@ struct FriendActivityCard: View {
         .background(Color(.systemBackground))
         .cornerRadius(15)
         .shadow(radius: 3)
+    }
+}
+
+struct MacroStatRow: View {
+    let label: String
+    let value: String
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(label)
+                .font(.system(size: 14))
+                .foregroundColor(.primary.opacity(0.8))
+            Text(value)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.primary)
+        }
+    }
+}
+
+struct MacroProgressBar: View {
+    let label: String
+    let value: Int
+    let target: Int
+    let color: Color
+    
+    private var progress: CGFloat {
+        CGFloat(value) / CGFloat(target)
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label)
+                .font(.system(size: 12))
+                .foregroundColor(.primary)
+            
+            Text("\(value)/\(target)g")
+                .font(.system(size: 12))
+                .foregroundColor(.primary)
+            
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    // Background bar
+                    Rectangle()
+                        .fill(color.opacity(0.2))
+                        .frame(height: 4)
+                        .cornerRadius(2)
+                    
+                    // Progress bar
+                    Rectangle()
+                        .fill(color)
+                        .frame(width: geometry.size.width * progress, height: 4)
+                        .cornerRadius(2)
+                }
+            }
+            .frame(height: 4)
+        }
     }
 }
 
