@@ -2,6 +2,48 @@
 
 Een AI-powered gezondheids- en fitness-app die je dagelijkse voedselinname bijhoudt met behulp van AI. De app kan voedsel identificeren via foto's of handmatige invoer, en geeft je een gedetailleerd overzicht van je voedingswaarden.
 
+## Latest Changes (21-02-2025-1756)
+
+### New Features
+- 🌐 ⚡️ Improved HomePageView structure with better component organization
+
+### Bug Fixes
+- 🛠️ 
+
+### Code Optimizations
+- ⚡️ 
+
+### UI/UX Changes
+- 🎨 
+
+# Carve - iOS Health & Fitness App
+
+Een AI-powered gezondheids- en fitness-app die je dagelijkse voedselinname bijhoudt met behulp van AI. De app kan voedsel identificeren via foto's of handmatige invoer, en geeft je een gedetailleerd overzicht van je voedingswaarden.
+
+## Latest Changes (21-02-2025-1800)
+
+### New Features
+- 🌐 Added food diary list with quick add/remove functionality
+- 🌐 Implemented animated calorie counter with slide animation
+
+### Bug Fixes
+- 🛠️ Fixed layout issues in nutrition card
+
+### Code Optimizations
+- ⚡️ Improved HomePageView structure with better component organization
+- ⚡️ Enhanced animated counter performance
+- ⚡️ Optimized macro progress bars display
+
+### UI/UX Changes
+- 🎨 Redesigned nutrition card with modern card-based layout
+- 🎨 Added food diary with intuitive plus/minus controls
+- 🎨 Updated calorie display with cleaner typography
+- 🎨 Improved macro progress bars visualization
+
+# Carve - iOS Health & Fitness App
+
+Een AI-powered gezondheids- en fitness-app die je dagelijkse voedselinname bijhoudt met behulp van AI. De app kan voedsel identificeren via foto's of handmatige invoer, en geeft je een gedetailleerd overzicht van je voedingswaarden.
+
 ## Latest Changes (21-02-2025-1651)
 
 ### New Features
@@ -133,4 +175,4 @@ De volgende bestanden NIET uploaden naar Git:
 GoogleService-Info.plist
 Config.swift (API-sleutels)
 📩 Contact
-🔧 Ontwikkeld door Furkan Çeliker  # Append previous README content  # Append previous README content  # Append previous README content
+🔧 Ontwikkeld door Furkan Çeliker  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content
