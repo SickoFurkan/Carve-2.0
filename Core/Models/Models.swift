@@ -8,16 +8,22 @@ public struct Meal: Identifiable, Hashable, Equatable, Codable {
     public let protein: Int
     public let carbs: Int
     public let fat: Int
-    public let time: String
+    public let date: Date
     
-    public init(id: UUID = UUID(), name: String, calories: Int, protein: Int, carbs: Int = 0, fat: Int = 0, time: String) {
+    public var timeString: String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+    
+    public init(id: UUID = UUID(), name: String, calories: Int, protein: Int, carbs: Int = 0, fat: Int = 0, date: Date = Date()) {
         self.id = id
         self.name = name
         self.calories = calories
         self.protein = protein
         self.carbs = carbs
         self.fat = fat
-        self.time = time
+        self.date = date
     }
     
     // Implement Equatable
@@ -40,6 +46,10 @@ public struct Friend: Identifiable, Hashable, Equatable, Codable {
     public let fat: Int
     public let todaysMeals: [Meal]
     
+    enum CodingKeys: String, CodingKey {
+        case id, name, calories, protein, carbs, fat, todaysMeals
+    }
+    
     public init(id: UUID = UUID(), name: String, calories: Int, protein: Int, carbs: Int, fat: Int, todaysMeals: [Meal]) {
         self.id = id
         self.name = name
@@ -48,6 +58,28 @@ public struct Friend: Identifiable, Hashable, Equatable, Codable {
         self.carbs = carbs
         self.fat = fat
         self.todaysMeals = todaysMeals
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        calories = try container.decode(Int.self, forKey: .calories)
+        protein = try container.decode(Int.self, forKey: .protein)
+        carbs = try container.decode(Int.self, forKey: .carbs)
+        fat = try container.decode(Int.self, forKey: .fat)
+        todaysMeals = try container.decode([Meal].self, forKey: .todaysMeals)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(calories, forKey: .calories)
+        try container.encode(protein, forKey: .protein)
+        try container.encode(carbs, forKey: .carbs)
+        try container.encode(fat, forKey: .fat)
+        try container.encode(todaysMeals, forKey: .todaysMeals)
     }
     
     // Implement Equatable

@@ -99,14 +99,13 @@ struct DateCircle: View {
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(dateTextColor)
             }
-            .background(isSelected ? Color.blue.opacity(0.0) : Color.clear) // Remove blue background
             
             // Indicator Text with consistent height
             Text(indicatorText)
                 .font(.system(size: 10))
                 .foregroundColor(hasCalories ? (isSelected ? .primary : .gray) : .clear)
                 .frame(height: 12)
-                .contentShape(Rectangle()) // Maintains tap area
+                .contentShape(Rectangle())
         }
         .frame(width: 50)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)

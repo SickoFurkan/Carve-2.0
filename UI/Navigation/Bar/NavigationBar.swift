@@ -31,39 +31,37 @@ public struct NavigationBar: View {
     private let calendar = Calendar.current
     
     private var weekDays: [String] {
-        return ["M", "T", "W", "T", "F", "S", "S"]
+        return ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
     }
     
-    // Break down the complex body property into smaller views
     private var topSection: some View {
-        HStack {
-            Button(action: onTrainerTap) {
-                Image(systemName: "figure.strengthtraining")
-                    .font(.system(size: 24))
-                    .foregroundColor(.blue)
-                    .frame(width: 40, height: 40)
-                    .background(Color.blue.opacity(0.1))
-                    .clipShape(Circle())
-            }
-            
-            Spacer()
-            
-            Text(title)
-                .font(.headline)
-            
-            Spacer()
-            
-            Button(action: onProfileTap) {
-                Image(systemName: "person.circle")
-                    .font(.system(size: 24))
-            }
-        }
-        .padding(.horizontal)
-        .frame(height: 44)
-    }
-    
-    private var dateSelectionSection: some View {
         VStack(spacing: 2) {
+            HStack {
+                Button(action: onTrainerTap) {
+                    Image(systemName: "brain.head.profile")
+                        .font(.title2)
+                        .foregroundColor(.primary)
+                }
+                
+                Spacer()
+                
+                Text(formattedDate(from: selectedDate))
+                    .font(.headline)
+                    .onTapGesture {
+                        showingCalendarPicker = true
+                    }
+                
+                Spacer()
+                
+                Button(action: onProfileTap) {
+                    Image(systemName: "person.circle")
+                        .font(.title2)
+                        .foregroundColor(.primary)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+
             // Days of the week with background highlight
             HStack(spacing: 0) {
                 ForEach(Array(zip(weekDays.indices, weekDays)), id: \.0) { index, day in
@@ -102,19 +100,22 @@ public struct NavigationBar: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 4)
-        .background(colorScheme == .dark ? Color.black : Color.white)
+    }
+    
+    private func formattedDate(from date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .long
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
     }
     
     public var body: some View {
-        VStack(spacing: 0) {
-            topSection
-            dateSelectionSection
-        }
-        .sheet(isPresented: $showingCalendarPicker) {
-            MonthCalendarView(selectedDate: $selectedDate, isPresented: $showingCalendarPicker, pageType: pageType)
-                .environmentObject(workoutStore)
-                .environmentObject(nutritionStore)
-        }
+        topSection
+            .sheet(isPresented: $showingCalendarPicker) {
+                MonthCalendarView(selectedDate: $selectedDate, isPresented: $showingCalendarPicker, pageType: pageType)
+                    .environmentObject(workoutStore)
+                    .environmentObject(nutritionStore)
+            }
     }
     
     // Helper Views
@@ -154,20 +155,6 @@ public struct NavigationBar: View {
         
         var body: some View {
             ZStack {
-                if isSelected {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.blue.opacity(0.15))
-                        .frame(width: 50)
-                        .frame(height: 50)
-                        .offset(y: -2)
-                        .clipShape(
-                            RoundedCorner(
-                                radius: 12,
-                                corners: [.bottomLeft, .bottomRight]
-                            )
-                        )
-                }
-                
                 DateCircle(
                     date: date,
                     isSelected: isSelected,

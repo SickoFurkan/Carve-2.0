@@ -308,6 +308,7 @@ struct ContentView: View {
             .scrollIndicators(.hidden)
             .ignoresSafeArea(.container, edges: [.bottom])
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+            .interactiveDismissDisabled()
             .zIndex(1)
             
             // Bottom Tab Bar and Plus Button

@@ -42,9 +42,7 @@ struct MuscleUpsView: View {
                         )
                     }
                 }
-                .padding()
             }
-            .cardStyle()
             
             // Muscle Groups Card
             CardView {
@@ -94,9 +92,7 @@ struct MuscleUpsView: View {
                         )
                     }
                 }
-                .padding()
             }
-            .cardStyle()
             
             // Recent Workouts Card
             CardView {
@@ -108,9 +104,7 @@ struct MuscleUpsView: View {
                         WorkoutRow()
                     }
                 }
-                .padding()
             }
-            .cardStyle()
         }
         .standardPageLayout()
         .ignoresSafeArea(.container, edges: [])
