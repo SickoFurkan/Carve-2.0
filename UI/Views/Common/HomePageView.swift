@@ -410,20 +410,6 @@ struct FriendActivityCard: View {
     }
 }
 
-struct CameraPreview: UIViewRepresentable {
-    let cameraManager: CameraManager
-    
-    func makeUIView(context: Context) -> UIView {
-        let view = UIView(frame: .zero)
-        view.backgroundColor = .black
-        
-        // Add camera preview layer here when implementing actual camera
-        return view
-    }
-    
-    func updateUIView(_ uiView: UIView, context: Context) {}
-}
-
 #Preview {
     HomePageView(
         selectedDate: .constant(Date()),

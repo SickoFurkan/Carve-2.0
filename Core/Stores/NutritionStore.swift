@@ -21,6 +21,9 @@ public struct DailyNutrition: Codable, Identifiable {
 }
 
 public class NutritionStore: ObservableObject {
+    // Singleton instance
+    public static let shared = NutritionStore()
+    
     @Published public var dailyNutritions: [DailyNutrition] = []
     
     private let userDefaults = UserDefaults.standard
@@ -30,7 +33,7 @@ public class NutritionStore: ObservableObject {
         loadNutritions()
     }
     
-    public func addMeal(_ meal: Meal, for date: Date) {
+    public func addMeal(_ meal: Meal, for date: Date = Date()) {
         if let index = dailyNutritions.firstIndex(where: { Calendar.current.isDate($0.date, inSameDayAs: date) }) {
             dailyNutritions[index].meals.append(meal)
             updateTotals(at: index)
@@ -64,26 +67,41 @@ public class NutritionStore: ObservableObject {
         return []
     }
     
-    public func getTodaysTotalCalories() -> Int {
-        getNutrition(for: Date()).totalCalories
-    }
-    
-    public func getTodaysTotalProtein() -> Int {
-        getNutrition(for: Date()).totalProtein
-    }
-    
-    public func getTodaysTotalCarbs() -> Int {
-        getNutrition(for: Date()).totalCarbs
-    }
-    
-    public func getTodaysTotalFat() -> Int {
-        getNutrition(for: Date()).totalFat
-    }
-    
+    // Convenience methods for getting totals
     public func getTotalCaloriesForDate(_ date: Date) -> Int {
         getNutrition(for: date).totalCalories
     }
     
+    public func getTotalProteinForDate(_ date: Date) -> Int {
+        getNutrition(for: date).totalProtein
+    }
+    
+    public func getTotalCarbsForDate(_ date: Date) -> Int {
+        getNutrition(for: date).totalCarbs
+    }
+    
+    public func getTotalFatForDate(_ date: Date) -> Int {
+        getNutrition(for: date).totalFat
+    }
+    
+    // Today's convenience methods
+    public func getTodaysTotalCalories() -> Int {
+        getTotalCaloriesForDate(Date())
+    }
+    
+    public func getTodaysTotalProtein() -> Int {
+        getTotalProteinForDate(Date())
+    }
+    
+    public func getTodaysTotalCarbs() -> Int {
+        getTotalCarbsForDate(Date())
+    }
+    
+    public func getTodaysTotalFat() -> Int {
+        getTotalFatForDate(Date())
+    }
+    
+    // Persistence
     private func saveNutritions() {
         if let encoded = try? JSONEncoder().encode(dailyNutritions) {
             userDefaults.set(encoded, forKey: storageKey)

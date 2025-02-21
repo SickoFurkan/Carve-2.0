@@ -56,12 +56,42 @@ struct MuscleUpsView: View {
                         GridItem(.flexible()),
                         GridItem(.flexible())
                     ], spacing: 12) {
-                        MuscleGroupButton(name: "Chest", icon: "heart.fill", color: .red, selectedDate: $selectedDate)
-                        MuscleGroupButton(name: "Back", icon: "figure.walk", color: .blue, selectedDate: $selectedDate)
-                        MuscleGroupButton(name: "Legs", icon: "figure.walk", color: .purple, selectedDate: $selectedDate)
-                        MuscleGroupButton(name: "Shoulders", icon: "figure.arms.open", color: .orange, selectedDate: $selectedDate)
-                        MuscleGroupButton(name: "Arms", icon: "figure.arms.open", color: .green, selectedDate: $selectedDate)
-                        MuscleGroupButton(name: "Core", icon: "figure.core.training", color: .yellow, selectedDate: $selectedDate)
+                        MuscleGroupButton(
+                            name: "Chest",
+                            icon: "heart.fill",
+                            color: .red,
+                            onTap: { addWorkout(.chest) }
+                        )
+                        MuscleGroupButton(
+                            name: "Back",
+                            icon: "figure.walk",
+                            color: .blue,
+                            onTap: { addWorkout(.back) }
+                        )
+                        MuscleGroupButton(
+                            name: "Legs",
+                            icon: "figure.walk",
+                            color: .purple,
+                            onTap: { addWorkout(.legs) }
+                        )
+                        MuscleGroupButton(
+                            name: "Shoulders",
+                            icon: "figure.arms.open",
+                            color: .orange,
+                            onTap: { addWorkout(.shoulders) }
+                        )
+                        MuscleGroupButton(
+                            name: "Arms",
+                            icon: "figure.arms.open",
+                            color: .green,
+                            onTap: { addWorkout(.biceps) }
+                        )
+                        MuscleGroupButton(
+                            name: "Core",
+                            icon: "figure.core.training",
+                            color: .yellow,
+                            onTap: { addWorkout(.core) }
+                        )
                     }
                 }
                 .padding()
@@ -100,66 +130,23 @@ struct MuscleUpsView: View {
         }
     }
     
+    private func addWorkout(_ muscleGroup: MuscleGroup) {
+        let workout = Workout(
+            name: "\(muscleGroup.name) Workout",
+            duration: 0,
+            muscleGroups: [muscleGroup],
+            date: selectedDate
+        )
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            workoutStore.addWorkout(workout)
+        }
+    }
+    
     private func formattedDate(from date: Date) -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "nl_NL")
         formatter.dateFormat = "EEEE d MMM"
         return formatter.string(from: date).uppercased()
-    }
-}
-
-struct MuscleGroupButton: View {
-    let name: String
-    let icon: String
-    let color: Color
-    @EnvironmentObject var workoutStore: WorkoutStore
-    @Binding var selectedDate: Date
-    var isSelected: Bool = false
-    var onTap: (() -> Void)? = nil
-    
-    private var muscleGroup: MuscleGroup {
-        switch name {
-        case "Chest": return .chest
-        case "Back": return .back
-        case "Legs": return .legs
-        case "Shoulders": return .shoulders
-        case "Arms": return .arms
-        case "Core": return .core
-        case "Cardio": return .cardio
-        default: return .core
-        }
-    }
-    
-    var body: some View {
-        Button(action: {
-            if let customTap = onTap {
-                customTap()
-            } else {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                    // Add workout for the selected muscle group
-                    workoutStore.addWorkout(
-                        muscleGroups: [muscleGroup],
-                        name: "\(name) Workout",
-                        duration: 0,
-                        exercises: [],
-                        for: selectedDate
-                    )
-                }
-            }
-        }) {
-            VStack(spacing: 8) {
-                Image(systemName: icon)
-                    .font(.system(size: 24))
-                Text(name)
-                    .font(.subheadline)
-            }
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(isSelected ? color : color.opacity(0.1))
-            .cornerRadius(12)
-            .foregroundColor(isSelected ? .white : color)
-            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
-        }
     }
 }
 
