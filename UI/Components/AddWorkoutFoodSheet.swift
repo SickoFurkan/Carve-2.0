@@ -4,6 +4,7 @@ struct AddWorkoutFoodSheet: View {
     @Binding var isPresented: Bool
     @ObservedObject var nutritionStore: NutritionStore
     @EnvironmentObject var workoutStore: WorkoutStore
+    @StateObject private var cameraManager = CameraManager()
     @State private var selectedTab = 0
     @State private var showingCamera = false
     
@@ -131,17 +132,18 @@ struct AddWorkoutFoodSheet: View {
         }
         .sheet(isPresented: $showingCamera) {
             CameraView(nutritionStore: nutritionStore)
+                .environmentObject(cameraManager)
         }
     }
     
     private func addWorkout(_ muscleGroup: MuscleGroup) {
-        workoutStore.addWorkout(
-            muscleGroups: [muscleGroup],
-            name: "\(muscleGroup.rawValue) Workout",
+        let workout = Workout(
+            name: "\(muscleGroup.name) Workout",
             duration: 0,
-            exercises: [],
-            for: Date()
+            muscleGroups: [muscleGroup],
+            date: Date()
         )
+        workoutStore.addWorkout(workout)
         isPresented = false
     }
 } 

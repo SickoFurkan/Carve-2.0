@@ -5,15 +5,14 @@ public struct MuscleGroupButton: View {
     let icon: String
     let color: Color
     let isSelected: Bool
-    let onTap: (() -> Void)?
-    @EnvironmentObject var workoutStore: WorkoutStore
+    let onTap: () -> Void
     
     public init(
         name: String,
         icon: String,
         color: Color,
         isSelected: Bool = false,
-        onTap: (() -> Void)? = nil
+        onTap: @escaping () -> Void
     ) {
         self.name = name
         self.icon = icon
@@ -36,11 +35,7 @@ public struct MuscleGroupButton: View {
     }
     
     public var body: some View {
-        Button(action: {
-            if let customTap = onTap {
-                customTap()
-            }
-        }) {
+        Button(action: onTap) {
             VStack(spacing: 8) {
                 Image(systemName: icon)
                     .font(.system(size: 24))

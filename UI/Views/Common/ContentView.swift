@@ -169,11 +169,13 @@ struct ContentView: View {
     @State private var showingCamera = false
     @State private var showingWorkoutSheet = false
     @State private var showingTrainerChat = false
-    @StateObject private var nutritionStore = NutritionStore()
-    @StateObject private var workoutStore = WorkoutStore()
+    
+    // Update store references to use explicit type declaration
+    @StateObject private var nutritionStore: NutritionStore = .shared
+    @StateObject private var workoutStore: WorkoutStore = .shared
     @EnvironmentObject var firebaseService: FirebaseService
     @Environment(\.scenePhase) private var scenePhase
-    @ObservedObject private var keyboardHandler = KeyboardHandler()
+    @StateObject private var keyboardHandler = KeyboardHandler()
     
     // Update haptic feedback generator
     private let lightHaptic = UIImpactFeedbackGenerator(style: .light)
@@ -280,53 +282,51 @@ struct ContentView: View {
             TabView(selection: $selectedTab) {
                 MuscleUpsView(selectedDate: $selectedDate)
                     .tag(0)
-                    .ignoresSafeArea(.container, edges: .bottom)
+                    .ignoresSafeArea(.container, edges: [.bottom])
                     .environmentObject(workoutStore)
                 
                 ForkDownsView(selectedDate: $selectedDate, nutritionStore: nutritionStore)
                     .tag(1)
-                    .ignoresSafeArea(.container, edges: .bottom)
+                    .ignoresSafeArea(.container, edges: [.bottom])
                 
                 HomePageView(selectedDate: $selectedDate, nutritionStore: nutritionStore)
                     .tag(2)
-                    .ignoresSafeArea(.container, edges: .bottom)
+                    .ignoresSafeArea(.container, edges: [.bottom])
                 
                 KnowledgeView()
                     .tag(3)
-                    .ignoresSafeArea(.container, edges: .bottom)
+                    .ignoresSafeArea(.container, edges: [.bottom])
                 
                 LiveView()
                     .tag(4)
-                    .ignoresSafeArea(.container, edges: .bottom)
+                    .ignoresSafeArea(.container, edges: [.bottom])
             }
             .onChange(of: selectedTab) { newValue in
                 lightHaptic.impactOccurred(intensity: 0.2)
             }
             .padding(.top, 160)
             .scrollIndicators(.hidden)
-            .ignoresSafeArea(.container, edges: .bottom)
+            .ignoresSafeArea(.container, edges: [.bottom])
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             .zIndex(1)
             
             // Bottom Tab Bar and Plus Button
             VStack {
                 Spacer()
-                ZStack {
-                    // Tab Bar
-                    CustomTabBar(
-                        selectedTab: $selectedTab,
-                        showingWorkoutSheet: $showingWorkoutSheet,
-                        items: [
-                            ("figure.strengthtraining.traditional", "Muscle Ups"),
-                            ("fork.knife", "Fork Downs"),
-                            ("house.fill", "Home"),
-                            ("book.fill", "Knowledge"),
-                            ("person.2.fill", "Live")
-                        ]
-                    )
-                }
+                CustomTabBar(
+                    selectedTab: $selectedTab,
+                    showingWorkoutSheet: $showingWorkoutSheet,
+                    items: [
+                        (image: "figure.strengthtraining.traditional", title: "Muscle Ups"),
+                        (image: "fork.knife", title: "Fork Downs"),
+                        (image: "house.fill", title: "Home"),
+                        (image: "book.fill", title: "Knowledge"),
+                        (image: "video.fill", title: "Live")
+                    ]
+                )
             }
-            .zIndex(2)
+            .ignoresSafeArea(.keyboard)
+            .zIndex(3)
         }
         .sheet(isPresented: $showingProfile) {
             NavigationView {
@@ -340,7 +340,7 @@ struct ContentView: View {
             AddWorkoutFoodSheet(isPresented: $showingWorkoutSheet, nutritionStore: nutritionStore)
                 .environmentObject(workoutStore)
                 .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
+                .interactiveDismissDisabled(false)
         }
         .sheet(isPresented: $showingTrainerChat) {
             TrainerChatView(nutritionStore: nutritionStore, workoutStore: workoutStore)

@@ -2,6 +2,42 @@
 
 Een AI-powered gezondheids- en fitness-app die je dagelijkse voedselinname bijhoudt met behulp van AI. De app kan voedsel identificeren via foto's of handmatige invoer, en geeft je een gedetailleerd overzicht van je voedingswaarden.
 
+## Latest Changes (21-02-2025-1313)
+
+### New Features
+- 🌐 Improved code organization with better method grouping
+
+### Bug Fixes
+- 🛠️ 🧹 Removed duplicate NutritionStore implementation
+
+### Code Optimizations
+- ⚡️ ⚡️ ⚡️ ⚡️ ⚡️ ⚡️ 📂 Reorganized file structure for better maintainability
+
+### UI/UX Changes
+- 🎨 ✨ Unified workout selection interface
+
+# Carve - iOS Health & Fitness App
+
+Een AI-powered gezondheids- en fitness-app die je dagelijkse voedselinname bijhoudt met behulp van AI. De app kan voedsel identificeren via foto's of handmatige invoer, en geeft je een gedetailleerd overzicht van je voedingswaarden.
+
+## Latest Changes (21-02-2025-1245)
+
+### New Features
+- 🔄 Consolidated NutritionStore implementations into a single, more robust version
+- 📊 Enhanced nutrition tracking with improved data persistence
+
+### Bug Fixes
+- 🛠️ Fixed ambiguous type reference for NutritionStore
+- 🧹 Removed duplicate NutritionStore implementation
+
+### Code Optimizations
+- ⚡️ Added shared singleton instance for better state management
+- 📂 Improved code organization with better method grouping
+- 🎯 Reduced code duplication in nutrition calculations
+
+### UI/UX Changes
+- 🎨 Consistent nutrition tracking across the app
+
 ## Latest Changes (21-02-2025-1238)
 
 ### New Features
@@ -395,7 +431,7 @@ Een AI-powered gezondheids- en fitness-app die je dagelijkse voedselinname bijho
 - 📊 Nutrition tracking
 - 💪 Muscle Ups: Health and fitness tracking
 - 🔴 Live: Social features for user interaction
-- �� Dark mode support
+- 🌓 Dark mode support
 
 ### Authentication System
 - Complete authentication flow with email/password, Google, and Apple Sign In
@@ -455,4 +491,4 @@ The following files contain sensitive information and are NOT included in the re
 Keep these files secure and NEVER share them via Git or other public channels.
 
 ## Contact
-Developed by Furkan Çeliker  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content
+Developed by Furkan Çeliker  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content
