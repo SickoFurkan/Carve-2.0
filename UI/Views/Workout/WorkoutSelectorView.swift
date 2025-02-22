@@ -6,6 +6,7 @@ struct WorkoutSelectorView: View {
     @State private var selectedMuscleGroups = Set<MuscleGroup>()
     @State private var workoutName = ""
     @State private var workoutDuration = 60.0
+    @State private var showingAlert = false
     @ObservedObject private var workoutStore = WorkoutStore.shared
     
     private let muscleGroups = MuscleGroup.allCases
@@ -34,7 +35,7 @@ struct WorkoutSelectorView: View {
                         GridItem(.flexible()),
                         GridItem(.flexible()),
                         GridItem(.flexible())
-                    ]) {
+                    ], spacing: 12) {
                         ForEach(muscleGroups) { muscleGroup in
                             MuscleGroupButton(
                                 name: muscleGroup.name,
@@ -65,11 +66,20 @@ struct WorkoutSelectorView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
-                        saveWorkout()
-                        dismiss()
+                        if workoutName.isEmpty {
+                            showingAlert = true
+                        } else {
+                            saveWorkout()
+                            dismiss()
+                        }
                     }
-                    .disabled(selectedMuscleGroups.isEmpty || workoutName.isEmpty)
+                    .disabled(selectedMuscleGroups.isEmpty)
                 }
+            }
+            .alert("Missing Information", isPresented: $showingAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Please enter a workout name")
             }
         }
     }

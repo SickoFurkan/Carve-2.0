@@ -26,7 +26,11 @@ struct ProfileView: View {
                             error: error,
                             firebaseService: firebaseService,
                             showingOnboarding: $showingOnboarding,
-                            onRetry: viewModel.loadUserProfile
+                            onRetry: {
+                                Task {
+                                    await viewModel.loadUserProfile()
+                                }
+                            }
                         )
                     } else if let profile = viewModel.userProfile {
                         profileContent(profile)

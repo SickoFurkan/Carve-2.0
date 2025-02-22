@@ -270,6 +270,68 @@ struct PostCardView: View {
     }
 }
 
+// MARK: - Quick Capture Card
+struct QuickCaptureCard: View {
+    let onCameraTap: () -> Void
+    let onLibraryTap: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            // Title and hint
+            HStack {
+                Text("Quick Add")
+                    .font(.headline)
+                Spacer()
+                HStack(spacing: 4) {
+                    Text("Take a photo or choose from library")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Image(systemName: "arrow.right")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            // Buttons
+            HStack(spacing: 16) {
+                // Camera Button
+                Button(action: onCameraTap) {
+                    VStack {
+                        Image(systemName: "camera.fill")
+                            .font(.system(size: 24))
+                        Text("Camera")
+                            .font(.caption)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+                }
+                
+                // Library Button
+                Button(action: onLibraryTap) {
+                    VStack {
+                        Image(systemName: "photo.fill")
+                            .font(.system(size: 24))
+                        Text("Library")
+                            .font(.caption)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.green)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+                }
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(radius: 5)
+    }
+}
+
 // MARK: - Main HomePageView
 struct HomePageView: View {
     @StateObject private var viewModel = FoodEntryViewModel()
@@ -279,6 +341,10 @@ struct HomePageView: View {
     @Binding private var selectedDate: Date
     @State private var showingCamera = false
     @State private var showingImagePicker = false
+    @State private var selectedImage: UIImage?
+    @State private var isAnalyzing = false
+    @State private var scrollViewProxy: ScrollViewProxy?
+    @StateObject private var cameraManager = CameraManager()
     
     // Mock data for testing
     @State private var posts: [Post] = [
@@ -298,60 +364,103 @@ struct HomePageView: View {
         self.nutritionStore = nutritionStore
     }
     
-    var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                // Nutrition Card
-                NutritionCard(nutritionStore: nutritionStore, selectedDate: selectedDate)
-                    .padding(.horizontal)
+    private func handleSelectedImage(_ image: UIImage) {
+        selectedImage = image
+        isAnalyzing = true
+        
+        Task {
+            try? await Task.sleep(nanoseconds: 2 * 1_000_000_000)
+            
+            await MainActor.run {
+                nutritionStore.addMeal(
+                    Meal(
+                        name: "Photo Analysis",
+                        calories: 400,
+                        protein: 25,
+                        carbs: 45,
+                        fat: 15
+                    ),
+                    for: selectedDate
+                )
                 
-                // Camera and Library Buttons
-                HStack(spacing: 16) {
-                    // Camera Button
-                    Button(action: { showingCamera = true }) {
-                        VStack {
-                            Image(systemName: "camera.fill")
-                                .font(.system(size: 24))
-                            Text("Camera")
-                                .font(.caption)
+                isAnalyzing = false
+                selectedImage = nil
+            }
+        }
+    }
+    
+    var body: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(spacing: 16) {
+                    // Top anchor view
+                    Color.clear
+                        .frame(height: 0)
+                        .id("top")
+                    
+                    // Nutrition Card
+                    NutritionCard(nutritionStore: nutritionStore, selectedDate: selectedDate)
+                        .padding(.horizontal)
+                    
+                    // Quick Capture Card
+                    QuickCaptureCard(
+                        onCameraTap: { showingCamera = true },
+                        onLibraryTap: { showingImagePicker = true }
+                    )
+                    .padding(.horizontal)
+                    .overlay {
+                        if isAnalyzing {
+                            ZStack {
+                                Color.black.opacity(0.7)
+                                VStack(spacing: 12) {
+                                    ProgressView()
+                                        .scaleEffect(1.5)
+                                    Text("Analyzing photo...")
+                                        .foregroundColor(.white)
+                                }
+                            }
+                            .cornerRadius(16)
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
                     }
                     
-                    // Library Button
-                    Button(action: { showingImagePicker = true }) {
-                        VStack {
-                            Image(systemName: "photo.fill")
-                                .font(.system(size: 24))
-                            Text("Library")
+                    // Quick Workout Card
+                    QuickWorkoutCard()
+                        .padding(.horizontal)
+                    
+                    // Go to top button
+                    Button(action: {
+                        withAnimation(.spring()) {
+                            proxy.scrollTo("top", anchor: .top)
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: "arrow.up")
+                                .font(.caption)
+                            Text("Go to Top")
                                 .font(.caption)
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.green)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
+                        .foregroundColor(.secondary)
+                        .padding(.vertical, 16)
                     }
                 }
-                .padding(.horizontal)
-                
-                // Quick Workout Actions
-                QuickWorkoutCard()
-                    .padding(.horizontal)
-                
-                Spacer()
+                .padding(.top)
             }
-            .padding(.top)
+            .onAppear {
+                scrollViewProxy = proxy
+            }
         }
         .sheet(isPresented: $showingCamera) {
             CameraView(nutritionStore: nutritionStore)
+                .environmentObject(cameraManager)
         }
         .sheet(isPresented: $showingImagePicker) {
-            ImagePicker(selectedImage: .constant(nil), sourceType: .photoLibrary)
+            ImagePicker(selectedImage: $selectedImage, sourceType: .photoLibrary)
+                .onChange(of: selectedImage) { oldValue, newValue in
+                    if let image = newValue {
+                        handleSelectedImage(image)
+                        showingImagePicker = false
+                    }
+                }
         }
     }
 }
@@ -384,7 +493,7 @@ struct CircularCalorieProgress: View {
                 Text("/ \(Int(target))")
                     .font(.system(size: 16))
                     .foregroundColor(.secondary)
-                Text("kcal")
+                Text("calories")
                     .font(.system(size: 14))
                     .foregroundColor(.secondary)
             }
@@ -401,41 +510,75 @@ struct NutritionCard: View {
     let targetCalories: Double = 2500
     
     var body: some View {
-        VStack(spacing: 20) {
-            // Circular Calorie Progress
-            CircularCalorieProgress(
-                current: Double(nutritionStore.getTotalCaloriesForDate(selectedDate)),
-                target: targetCalories
-            )
-            .frame(width: 150, height: 150)
-            .padding(.top, 10)
+        VStack(spacing: 16) {
+            HStack(alignment: .center, spacing: 24) {
+                // Left side - Circular Calorie Progress
+                CircularCalorieProgress(
+                    current: Double(nutritionStore.getTotalCaloriesForDate(selectedDate)),
+                    target: targetCalories
+                )
+                .frame(width: 150, height: 150)
+                
+                // Right side - Macros
+                VStack(spacing: 24) {
+                    MacroIndicator(
+                        label: "Protein",
+                        value: Double(nutritionStore.getTotalProteinForDate(selectedDate)),
+                        target: 150,
+                        color: .blue
+                    )
+                    MacroIndicator(
+                        label: "Carbs",
+                        value: Double(nutritionStore.getTotalCarbsForDate(selectedDate)),
+                        target: 300,
+                        color: .green
+                    )
+                    MacroIndicator(
+                        label: "Fat",
+                        value: Double(nutritionStore.getTotalFatForDate(selectedDate)),
+                        target: 65,
+                        color: .orange
+                    )
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+            }
             
-            // Macros
-            HStack(spacing: 20) {
-                MacroIndicator(
-                    label: "Protein",
-                    value: Double(nutritionStore.getTotalProteinForDate(selectedDate)),
-                    target: 150,
-                    color: .blue
-                )
-                MacroIndicator(
-                    label: "Carbs",
-                    value: Double(nutritionStore.getTotalCarbsForDate(selectedDate)),
-                    target: 300,
-                    color: .green
-                )
-                MacroIndicator(
-                    label: "Fat",
-                    value: Double(nutritionStore.getTotalFatForDate(selectedDate)),
-                    target: 65,
-                    color: .orange
-                )
+            // Analyzed Items List
+            if !nutritionStore.getMealsForDate(selectedDate).isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Today's Food Items")
+                        .font(.headline)
+                        .padding(.top, 8)
+                    
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 12) {
+                            ForEach(nutritionStore.getMealsForDate(selectedDate), id: \.id) { meal in
+                                FoodItemBadge(name: meal.name)
+                            }
+                        }
+                    }
+                }
             }
         }
-        .padding()
+        .padding(20)
         .background(Color(.systemBackground))
         .cornerRadius(16)
         .shadow(radius: 5)
+    }
+}
+
+struct FoodItemBadge: View {
+    let name: String
+    
+    var body: some View {
+        Text(name)
+            .font(.caption)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(Color.blue.opacity(0.1))
+            .foregroundColor(.blue)
+            .cornerRadius(16)
     }
 }
 
@@ -451,34 +594,44 @@ struct MacroIndicator: View {
     }
     
     var body: some View {
-        VStack(spacing: 8) {
-            Text(label)
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            Text("\(Int(value))g")
-                .font(.system(size: 16, weight: .semibold))
+        VStack(alignment: .trailing, spacing: 4) {
+            HStack(alignment: .center, spacing: 4) {
+                Text(label)
+                    .font(.subheadline)
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                Text("\(Int(value))")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                
+                Text("g")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
             
             GeometryReader { geometry in
-                VStack(spacing: 2) {
-                    ZStack(alignment: .bottom) {
-                        Rectangle()
-                            .fill(color.opacity(0.2))
-                            .frame(width: 8, height: geometry.size.height)
-                        
-                        Rectangle()
-                            .fill(color)
-                            .frame(width: 8, height: geometry.size.height * progress)
-                    }
-                    .cornerRadius(4)
+                ZStack(alignment: .leading) {
+                    // Background bar
+                    Rectangle()
+                        .fill(color.opacity(0.2))
+                        .frame(width: geometry.size.width, height: 4)
+                    
+                    // Progress bar
+                    Rectangle()
+                        .fill(color)
+                        .frame(width: geometry.size.width * progress, height: 4)
                 }
+                .cornerRadius(2)
             }
-            .frame(height: 50)
+            .frame(height: 4)
             
             Text("\(Int(target))g")
-                .font(.caption2)
+                .font(.caption)
                 .foregroundColor(.secondary)
         }
+        .frame(maxWidth: .infinity)
     }
 }
 
@@ -867,7 +1020,6 @@ struct AnimatedCounter: View {
         HStack(spacing: 2) {
             ForEach(0..<4) { index in
                 let divisor = pow(10.0, Double(3 - index))
-                let digit = (value / Int(divisor)) % 10
                 let animatedDigit = (animationValue / Int(divisor)) % 10
                 
                 SlideDigit(
@@ -878,7 +1030,7 @@ struct AnimatedCounter: View {
                 )
             }
         }
-        .onChange(of: value) { newValue in
+        .onChange(of: value) { oldValue, newValue in
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                 animationValue = newValue
             }

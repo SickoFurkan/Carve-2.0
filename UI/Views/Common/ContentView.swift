@@ -53,8 +53,6 @@ struct CustomTabBar: View {
         .clipShape(RoundedRectangle(cornerRadius: 25))
         .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 2)
         .padding(.horizontal)
-        .padding(.bottom, 4)
-        .padding(.top, 20)
         .gesture(
             DragGesture(minimumDistance: 20)
                 .onChanged { _ in
@@ -331,6 +329,7 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showingCamera) {
             CameraView(nutritionStore: nutritionStore)
+                .environmentObject(CameraManager())
         }
         .sheet(isPresented: $showingWorkoutSheet) {
             AddWorkoutFoodSheet(isPresented: $showingWorkoutSheet, nutritionStore: nutritionStore)

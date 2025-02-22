@@ -4,7 +4,7 @@ struct ProfileErrorView: View {
     let error: String
     let firebaseService: FirebaseService
     @Binding var showingOnboarding: Bool
-    let onRetry: () async -> Void
+    let onRetry: () -> Void
     
     var body: some View {
         VStack(spacing: 8) {
@@ -35,9 +35,7 @@ struct ProfileErrorView: View {
             .padding(.top)
             
             Button("Opnieuw proberen") {
-                Task {
-                    await onRetry()
-                }
+                onRetry()
             }
             .padding(.top)
         }

@@ -2,6 +2,42 @@
 
 Een AI-powered gezondheids- en fitness-app die je dagelijkse voedselinname bijhoudt met behulp van AI. De app kan voedsel identificeren via foto's of handmatige invoer, en geeft je een gedetailleerd overzicht van je voedingswaarden.
 
+## Latest Changes (22-02-2025-1544)
+
+### New Features
+- 🌐 🏗️ Improved folder structure guidelines for better code organization
+
+### Bug Fixes
+- 🛠️ ️ ️ Removed redundant Live tab for cleaner navigation
+
+### Code Optimizations
+- ⚡️ ⚡️ Reorganized tab bar structure with improved navigation flow
+
+### UI/UX Changes
+- 🎨 
+
+# Carve - iOS Health & Fitness App
+
+Een AI-powered gezondheids- en fitness-app die je dagelijkse voedselinname bijhoudt met behulp van AI. De app kan voedsel identificeren via foto's of handmatige invoer, en geeft je een gedetailleerd overzicht van je voedingswaarden.
+
+## Latest Changes (22-02-2025-1400)
+
+### Documentation Updates
+- 📝 Enhanced coding guidelines with comprehensive error prevention rules
+- 📝 Added detailed state management best practices
+- 📝 Updated component organization guidelines
+- 📝 Added view modifier and shared component guidelines
+
+### Code Organization
+- 🏗️ Improved folder structure guidelines for better code organization
+- 🔄 Enhanced state ownership and management guidelines
+- 📚 Added asynchronous operations best practices
+
+### Best Practices
+- ✨ Added detailed guidelines for view modifiers
+- 🔧 Enhanced shared component usage guidelines
+- 🛠️ Updated state management practices for better code maintainability
+
 ## Latest Changes (22-02-2025-1236)
 
 ### New Features
@@ -296,4 +332,4 @@ De volgende bestanden NIET uploaden naar Git:
 GoogleService-Info.plist
 Config.swift (API-sleutels)
 📩 Contact
-🔧 Ontwikkeld door Furkan Çeliker  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content
+🔧 Ontwikkeld door Furkan Çeliker  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content

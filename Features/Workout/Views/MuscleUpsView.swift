@@ -19,79 +19,31 @@ struct MuscleUpsView: View {
                     Text("Today's Workout")
                         .font(.headline)
                     
+                    let stats = workoutStore.getWorkoutStats(for: selectedDate)
                     HStack(spacing: 20) {
                         WorkoutStatView(
-                            value: "0",
+                            value: "\(stats.sets)",
                             label: "Sets",
                             icon: "figure.strengthtraining.traditional",
                             unit: ""
                         )
                         
                         WorkoutStatView(
-                            value: "0",
+                            value: "\(stats.duration)",
                             label: "Minutes",
                             icon: "clock.fill",
                             unit: ""
                         )
                         
                         WorkoutStatView(
-                            value: "0",
+                            value: "\(stats.exercises)",
                             label: "Exercises",
                             icon: "dumbbell.fill",
                             unit: ""
                         )
                     }
                 }
-            }
-            
-            // Muscle Groups Card
-            CardView {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Muscle Groups")
-                        .font(.headline)
-                    
-                    LazyVGrid(columns: [
-                        GridItem(.flexible()),
-                        GridItem(.flexible())
-                    ], spacing: 12) {
-                        MuscleGroupButton(
-                            name: "Chest",
-                            icon: "heart.fill",
-                            color: .red,
-                            onTap: { addWorkout(.chest) }
-                        )
-                        MuscleGroupButton(
-                            name: "Back",
-                            icon: "figure.walk",
-                            color: .blue,
-                            onTap: { addWorkout(.back) }
-                        )
-                        MuscleGroupButton(
-                            name: "Legs",
-                            icon: "figure.walk",
-                            color: .purple,
-                            onTap: { addWorkout(.legs) }
-                        )
-                        MuscleGroupButton(
-                            name: "Shoulders",
-                            icon: "figure.arms.open",
-                            color: .orange,
-                            onTap: { addWorkout(.shoulders) }
-                        )
-                        MuscleGroupButton(
-                            name: "Arms",
-                            icon: "figure.arms.open",
-                            color: .green,
-                            onTap: { addWorkout(.biceps) }
-                        )
-                        MuscleGroupButton(
-                            name: "Core",
-                            icon: "figure.core.training",
-                            color: .yellow,
-                            onTap: { addWorkout(.core) }
-                        )
-                    }
-                }
+                .padding()
             }
             
             // Recent Workouts Card
@@ -100,64 +52,58 @@ struct MuscleUpsView: View {
                     Text("Recent Workouts")
                         .font(.headline)
                     
-                    ForEach(0..<3) { _ in
-                        WorkoutRow()
+                    let workouts = workoutStore.getWorkouts(for: selectedDate)
+                    if workouts.isEmpty {
+                        Text("No workouts logged for today")
+                            .foregroundColor(.gray)
+                            .italic()
+                            .padding(.vertical, 8)
+                    } else {
+                        ForEach(workouts) { workout in
+                            WorkoutRow(workout: workout)
+                            if workout.id != workouts.last?.id {
+                                Divider()
+                            }
+                        }
+                    }
+                    
+                    Button(action: {
+                        showingNewWorkout = true
+                    }) {
+                        HStack {
+                            Image(systemName: "plus.circle.fill")
+                            Text("Add Workout")
+                        }
+                        .foregroundColor(.blue)
+                        .padding(.vertical, 8)
                     }
                 }
+                .padding()
             }
         }
         .standardPageLayout()
-        .ignoresSafeArea(.container, edges: [])
-        .sheet(isPresented: $showingProfile) {
-            NavigationView {
-                ProfileView()
-                    .navigationBarItems(trailing: Button("Gereed") {
-                        showingProfile = false
-                    })
-            }
-        }
         .sheet(isPresented: $showingNewWorkout) {
-            NewWorkoutView()
+            WorkoutSelectorView(selectedDate: $selectedDate)
         }
-        .sheet(isPresented: $showingChallenges) {
-            ChallengesView()
-        }
-    }
-    
-    private func addWorkout(_ muscleGroup: MuscleGroup) {
-        let workout = Workout(
-            name: "\(muscleGroup.name) Workout",
-            duration: 0,
-            muscleGroups: [muscleGroup],
-            date: selectedDate
-        )
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-            workoutStore.addWorkout(workout)
-        }
-    }
-    
-    private func formattedDate(from date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "nl_NL")
-        formatter.dateFormat = "EEEE d MMM"
-        return formatter.string(from: date).uppercased()
     }
 }
 
 struct WorkoutRow: View {
+    let workout: Workout
+    
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Upper Body Workout")
+                Text(workout.name)
                     .font(.subheadline)
-                Text("Chest, Shoulders, Arms")
+                Text(workout.muscleGroups.map { $0.name }.joined(separator: ", "))
                     .font(.caption)
                     .foregroundColor(.gray)
             }
             
             Spacer()
             
-            Text("45 min")
+            Text("\(workout.duration) min")
                 .font(.caption)
                 .foregroundColor(.gray)
         }
