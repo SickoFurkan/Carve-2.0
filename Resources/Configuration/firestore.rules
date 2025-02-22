@@ -1,0 +1,56 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    function isFriend(userId) {
+      return isSignedIn() && exists(/databases/$(database)/documents/friends/$(userId)/user_friends/$(request.auth.uid));
+    }
+    
+    // User profiles
+    match /users/{userId} {
+      allow read: if isSignedIn() && (isOwner(userId) || isFriend(userId));
+      allow write: if isOwner(userId);
+    }
+    
+    // Friends collection
+    match /friends/{userId} {
+      allow read: if isSignedIn() && (isOwner(userId) || isFriend(userId));
+      allow write: if isOwner(userId);
+      
+      match /user_friends/{friendId} {
+        allow read: if isSignedIn() && (isOwner(userId) || isOwner(friendId));
+        allow write: if isOwner(userId);
+      }
+    }
+    
+    // Food entries
+    match /food_entries/{userId}/{document=**} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    // Friend requests
+    match /friend_requests/{userId}/pending/{requestId} {
+      allow read: if isOwner(userId);
+      allow write: if isSignedIn() && (
+        isOwner(userId) ||
+        request.resource.data.fromUserId == request.auth.uid
+      );
+    }
+    
+    // Suggestions
+    match /suggestions/{suggestionId} {
+      allow read: if isSignedIn();  // Any authenticated user can read suggestions
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;  // Users can create their own suggestions
+      allow update: if isSignedIn();  // Any authenticated user can update (for upvoting)
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;  // Only the creator can delete
+    }
+  }
+} 

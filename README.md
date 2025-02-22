@@ -1,3 +1,21 @@
+# Carve - iOS Health & Fitness App
+
+Een AI-powered gezondheids- en fitness-app die je dagelijkse voedselinname bijhoudt met behulp van AI. De app kan voedsel identificeren via foto's of handmatige invoer, en geeft je een gedetailleerd overzicht van je voedingswaarden.
+
+## Latest Changes (22-02-2025-1236)
+
+### New Features
+- 🌐 ⚡️ Improved HomePageView structure with better component organization
+
+### Bug Fixes
+- 🛠️ ️ Removed redundant Live tab for cleaner navigation
+
+### Code Optimizations
+- ⚡️ Reorganized tab bar structure with improved navigation flow
+
+### UI/UX Changes
+- 🎨 
+
 # Carve - iOS Health & Nutrition App
 
 ## Project Structure (as of 2025-02-22)
@@ -56,7 +74,24 @@ The project follows a clean architecture with the following directory structure:
 4. Open the .xcworkspace file
 5. Build and run
 
-## Recent Changes
+## Latest Changes (22-02-2025)
+
+### Documentation & Structure
+- 📝 Updated project documentation with comprehensive setup instructions
+- 🏗️ Consolidated project structure documentation
+- 📚 Added detailed implementation details and technical stack information
+
+### Code Organization
+- 📂 Established clear directory structure guidelines
+- 🔄 Documented core features and dependencies
+- 🛠️ Added setup requirements and getting started guide
+
+### Repository Management
+- 🔧 Created new feature branch for project structure updates
+- 📌 Added comprehensive README documentation
+- 🔄 Implemented version control best practices
+
+### Previous Changes
 - Initial project structure setup
 - Core directory organization
 - Basic app architecture implementation
@@ -261,4 +296,4 @@ De volgende bestanden NIET uploaden naar Git:
 GoogleService-Info.plist
 Config.swift (API-sleutels)
 📩 Contact
-🔧 Ontwikkeld door Furkan Çeliker  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content
+🔧 Ontwikkeld door Furkan Çeliker  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content  # Append previous README content

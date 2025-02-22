@@ -1,0 +1,81 @@
+// General
+"app_name" = "Carve";
+"ok" = "OK";
+"cancel" = "Annuleren";
+"save" = "Opslaan";
+"delete" = "Verwijderen";
+"edit" = "Bewerken";
+"done" = "Gereed";
+
+// Navigation
+"tab_muscle_ups" = "Spieropbouw";
+"tab_fork_downs" = "Voeding";
+"tab_live" = "Live";
+
+// Camera
+"camera_access_required" = "Camera toegang vereist";
+"take_photo_of_food" = "Maak een foto van je voedsel";
+"analyzing_photo" = "Analyseren...";
+"failed_to_process" = "Kan afbeelding niet verwerken";
+"failed_to_analyze" = "Kan voedsel niet analyseren";
+
+// Food Entry
+"food_entry_title" = "Voedsel Invoer";
+"food_name" = "Naam van voedsel";
+"amount_in_grams" = "Hoeveelheid in grammen";
+"add_manually" = "Handmatig Toevoegen";
+"analyzing" = "Bezig met analyseren...";
+"photo_analysis" = "Foto Analyse";
+"gallery" = "Galerij";
+"camera" = "Camera";
+"captured_food" = "Gefotografeerd Voedsel";
+
+// Nutrition
+"daily_summary" = "Dagelijks Overzicht";
+"calories" = "Calorieën";
+"protein" = "Proteïne";
+"carbs" = "Koolhydraten";
+"fat" = "Vetten";
+"todays_meals" = "Maaltijden Vandaag";
+"no_meals_added" = "Nog geen maaltijden toegevoegd";
+"calories_remaining" = "van %d kcal over";
+"g" = "g";
+
+// Profile & Settings
+"profile" = "Profiel";
+"settings" = "Instellingen";
+"language" = "Taal";
+"select_language" = "Selecteer Taal";
+"profile_setup" = "Profiel Instellen";
+"personal_info" = "Persoonlijke Informatie";
+"full_name" = "Volledige Naam";
+"height" = "Lengte";
+"weight" = "Gewicht";
+"gender" = "Geslacht";
+"birth_date" = "Geboortedatum";
+"daily_goals" = "Dagelijkse Doelen";
+"calorie_goal" = "Calorie Doel";
+"protein_goal" = "Proteïne Doel";
+"carbs_goal" = "Koolhydraten Doel";
+"fat_goal" = "Vetten Doel";
+
+// Errors
+"error" = "Fout";
+"error_loading_profile" = "Fout bij het laden van profiel";
+"error_saving_profile" = "Fout bij het opslaan van profiel";
+"error_analyzing_food" = "Fout bij het analyseren van voedsel";
+"error_camera_access" = "Camera toegang vereist";
+"error_photo_library_access" = "Fotobibliotheek toegang vereist";
+"rate_limit_error" = "Wacht een moment voordat je het opnieuw probeert";
+
+// Network and API Errors
+"no_internet_connection" = "Geen internetverbinding. Controleer je verbinding en probeer het opnieuw.";
+"invalid_response" = "Ongeldige reactie van server";
+"no_content_received" = "Geen inhoud ontvangen van server";
+"invalid_json_response" = "Ongeldig antwoordformaat";
+"max_retries_exceeded" = "Verzoek mislukt na meerdere pogingen: %@";
+"unknown_error" = "Er is een onbekende fout opgetreden";
+
+// Success Messages
+"profile_saved" = "Profiel succesvol opgeslagen";
+"food_entry_saved" = "Voedsel succesvol toegevoegd"; 
